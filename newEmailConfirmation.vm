@@ -1,0 +1,2887 @@
+#set($confirmMsg = 'Congratulations! Your flight booking is confirmed.')
+#set($eticketMsg = '')
+#set($bookingStatus = $confirmationJson.bookingStatus)
+#set($wflow = $confirmationJson.data.wflow)
+#set($tenant =  $confirmationJson.sc.payProp.tenantScope)
+#set($phoneNumber = '955-5800-800')
+#set($phoneNo = '0120-484-5562')
+#set($domSupportEmail = 'support@yatra.com')
+#set($intSupportEmail = 'intobservice@yatra.com')
+#set($mailTo = 'mailto:support@yatra.com')
+#set($fltSchedule = $confirmationJson.data.fltSchedule)
+#set($bannerMsg = $confirmationJson.uiUtils.bannerMsg)
+#set($fareDetails = $confirmationJson.data.fareDetails)
+#set($airline_penalty = $confirmationJson.data.fareDetails.pflag)
+#set($isSaleAirline = $confirmationJson.data.isSaleAirline)
+#set($showSaleAlertFailureMessage = $confirmationJson.data.showSaleAlertFailureMessage)
+#set($paxList = $confirmationJson.passengerList)
+#set($curSymb = $currencySymbol)
+#set($charges = $confirmationJson.sc.charges)
+#set($ecashAmount = $confirmationJson.sc.charges.ecash)
+#set($ixigoMoneyAmount = $confirmationJson.sc.charges.ixigoMoney)
+#set($payProp = $confirmationJson.sc.payProp)
+#set($addons = $confirmationJson.sc.addonDetails)
+#set($isHandBaggeOnlyAirline = 'false')
+#set($user = $confirmationJson.user)
+#set($ylp = '0')
+#set($bookingImage = 'flight-check-icon.gif')
+#set($walletBal = $confirmationJson.ewalletinfo.balance)
+#set($bookingFailSaleAirlineHeaderMeg=$confirmationJson.data.saleAlertFailureHeaderMessage)
+#set($bookingFailSaleAirlineDesMeg=$confirmationJson.data.saleAlertFailureDescriptionMessage)
+#set($bookingFailSaleAirlineLinkMeg=$confirmationJson.data.saleAlertFailureLinkMessage)
+#set($refundResponse = $confirmationJson.refundResponse)
+#set($searchPageUrl = $confirmationJson.searchPageUrl)
+#set($isOrgJammuSrinagarLeh = 'false')
+#set($isDestAgatti = 'false')
+#set($showBuzzInTown = 'false')
+#set($isTenantInt = $tenant.contains("int"))
+#set($isTenantDom = $tenant.contains("dom"))
+#set($isTenantSme = $tenant.contains("smeo"))
+#set($isTenantSmeAll = $confirmationJson.sc.payProp.tenantScope.contains("sme"))
+#if($confirmationJson.isReschd=='true')
+#set($isReschd = $confirmationJson.isReschd)
+#set($reschdLabel = $confirmationJson.reschdLabel)
+#set($reschdAmount = $confirmationJson.reschdAmount)
+#set($isCreditShellBooking = $confirmationJson.isCreditShellBooking)
+#end
+#set($isSTU = $confirmationJson.isSTU)
+#set($upSell = $confirmationJson.data.upSell)
+#if($isRepaymentSecondTtid)
+  #set($ecashAmount = $repaymentEcashAmount)
+#end
+#if(!($tenant == 'dom' || $tenant == 'dom2' || $tenant == 'mdomwap' || $tenant == 'mdomios' || $tenant == 'mdomandroid' ))
+  #set($phoneNumber = '0120-4845562')
+  #set($supportEmail = 'intobservice@yatra.com')
+  #set($mailTo = 'intobservice@yatra.com')
+#elseif($isTenantSmeAll == 'true')
+  #set($phoneNumber = '0120-4845573')
+  #set($supportEmail = 'smesupport@yatra.com')
+  #set($mailTo = 'mailto:smesupport@yatra.com')
+#end
+
+
+#set($fsCount = -1)
+#set($sectorcount = 0)
+
+
+#if($bookingStatus == 'failed')
+  #set($bookingImage = 'un-confirm.gif')
+#end
+#set($counter = 0)
+#if($bookingStatus != 'failed')
+  #set($ylp = $confirmationJson.data.fareDetails.ylp)
+  #set($walletBal = $math.add($confirmationJson.ewalletinfo.balance , $ylp))
+#end
+
+
+#if($GDSPendingTicketAndMoreThen24Hour != 'true' && $GDSPendingTicketAndLessThen24Hour != 'true' && $bookingStatus == 'success'  && $ticketPDF == 'true'&& ( $tenant == 'dom' || $tenant == 'dom2' || $tenant == 'mdomwap' || $tenant == 'mdomios' || $tenant == 'mdomandroid'||$tenant == 'smepdom'||$tenant == 'smeodom'||$tenant == 'smeodomandroid'||$tenant == 'smeodomios'||$tenant == 'smepdomandroid'||$tenant == 'smepdomios'))
+  #set($eticketMsg = 'Please find your e-ticket attached with this email.')
+#elseif ($bookingStatus != 'failed' && ($payProp.type == 'PARTIAL'))
+  #set($eticketMsg = 'Please make the balance payment before due date to receive the ticket. In case of non payment your booking will be cancelled. Kindly note, your reservation is confirmed however tickets would be sent once we receive the complete payment.')
+#elseif ($bookingStatus != 'failed' && $payProp.type == 'HOLD' && $isHff == 'true')
+  #set($confirmMsg = 'Congratulations! Your flight booking is on hold')
+  #set($eticketMsg = 'Thank you for booking your travel itinerary with yatra.com')
+#elseif ($bookingStatus == 'success' && !($tenant == 'dom' || $tenant == 'dom2' || $tenant == 'mdomwap' || $tenant == 'mdomios' || $tenant == 'mdomandroid'||$tenant == 'smepdom'||$tenant == 'smeodom'||$tenant == 'smeodomandroid'||$tenant == 'smeodomios'||$tenant == 'smepdomandroid'||$tenant == 'smepdomios'))
+
+  #if($showGroupDeparturesNotes == true)
+    #set($eticketMsg = 'Your eticket will be sent to you 5 days prior to the date of journey.')
+  #elseif($GDSPendingTicketAndMoreThen24Hour != 'true' && $GDSPendingTicketAndLessThen24Hour != 'true')
+    #set($eticketMsg = 'Please find your e-ticket attached with this email.')
+  #end
+
+#elseif ($bookingStatus == 'failed' && ($wflow == 'BFP' || $wflow == 'BPP'))
+  #set($confirmMsg = 'Sorry! Your flight booking is Unconfirmed.')
+  #set($eticketMsg = 'Your payment has not been charged. Please proceed with a fresh booking.')
+#elseif($bookingStatus == 'failed' && $wflow == 'PFB' && $refundResponse)
+  #if($tenant == 'dom' || $tenant == 'dom2' || $tenant == 'mdomwap' || $tenant == 'mdomios' || $tenant == 'mdomandroid')
+    #set($phoneNumber = '0120-4845562')
+  #elseif($isTenantSmeAll == 'true')
+    #set($phoneNumber = '0120-4845573')
+  #end
+  #if($refundResponse.status=='SUCCESS')
+    #if($charges.amtPaid==0 && $ecashAmount>0)
+      #set($confirmMsg = 'Your payment has been processed, but booking is not confirmed.')
+    #else
+      #set($confirmMsg = 'Your refund request has been processed')
+    #end
+    #if($refundResponse.eCashAdditionStatus == true)
+      #set($ylp = $math.add($ylp, $additionalEcashAfterRefund))
+      #set($walletBal = $math.add($confirmationJson.ewalletinfo.balance , $ylp))
+    #end
+  #else
+    #set($confirmMsg = 'Sorry! Your refund request has not been processed')
+  #end
+  #set($bookingImage='refund_process.gif')
+  #set($eticketMsg = '')
+#elseif($bookingStatus == 'failed' && $wflow == 'PFB')
+    #set($bookingImage = 'un-confirm.gif')
+  #if($tenant == 'dom' || $tenant == 'dom2' || $tenant == 'mdomwap' || $tenant == 'mdomios' || $tenant == 'mdomandroid')
+    #set($phoneNumber = '0120-4845562')
+  #elseif($isTenantSmeAll == 'true')
+    #set($phoneNumber = '0120-4845573')
+  #end
+  #set($confirmMsg = 'Your Payment has been processed.')
+  #if($isSaleAirline=='true' && $showSaleAlertFailureMessage=='true')
+    #set($eticketMsg = $bookingFailSaleAirlineHeaderMeg+' '+$bookingFailSaleAirlineDesMeg+' '+$bookingFailSaleAirlineLinkMeg)
+  #elseif($timeenabled != '' && $timeenabled == 'true' && $betweenSpecificTime == 'true')
+    #set($eticketMsg = 'Your payment has been successful, however, the airline system was unable to generate the confirmation. Please allow us some time to coordinate with the airline and reattempt the booking. In case your booking is not confirmed, we will offer you the next available flight option. Additional charges if any will be applicable. You may also contact our customer service number '+$phoneNumber+' between 9 AM to 6 PM. Please keep your booking reference number handy at that time.')
+  #else
+    #set($eticketMsg = 'Your payment has been successful, however, the airline system was unable to generate the confirmation. Please allow us some time to coordinate with the airline and reattempt the booking. In case your booking is not confirmed, we will offer you the next available flight option. Additional charges if any will be applicable. You may also contact our customer service number '+$phoneNumber+' between 9 AM to 6 PM. Please keep your booking reference number handy at that time.')
+  #end
+#elseif($bookingStatus == 'partialConfirmed' && $wflow == 'PFB')
+    #set($bookingImage = 'un-confirm.gif')
+  #if($tenant == 'dom' || $tenant == 'dom2' || $tenant == 'mdomwap' || $tenant == 'mdomios' || $tenant == 'mdomandroid')
+    #set($phoneNumber = '0120-4845562')
+  #elseif($isTenantSmeAll == 'true')
+    #set($phoneNumber = '0120-4845573')
+#end
+  #set($confirmMsg = 'Your payment has been processed, but booking is partially confirmed.')
+  #set($eticketMsg = 'Your payment has been successful, however, the airline system was unable to generate the confirmation for one or more legs in your booking. Please allow us some time to coordinate with the airline and reattempt the booking. In case your booking is not confirmed, we will offer you the next available flight option. Additional charges if any will be applicable. You may also contact our customer service number '+$phoneNumber+' between 09 AM to 6 PM. Please keep your booking reference number handy at that time.')
+  #end
+
+#if($confirmationJson.ycpAddons)
+    #foreach($addonCode in  $confirmationJson.ycpAddons)
+        #if($addonCode == 'DFC')
+            #set($isDFC = 'true')
+            #set($ycpUrl = 'https://www.yatra.com/offer/details/yatra-liberty-cancellation-protection')
+        #elseif($addonCode == 'BBG')
+            #set($isBBG = 'true')
+            #set($ycpUrl = 'https://www.yatra.com/offer/details/yatra-assure-program')
+        #end
+    #end
+#end
+##YTPRIME
+#set($isPrimeSelected = $confirmationJson.isPrimeSelected)
+
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<title></title>
+<style>
+  .confirm-eCash-wrapper{
+  width:100%;
+  float:left;
+  padding:10px;
+  background:#f9fae0;
+  -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}.pending-eticket-gds-wrapper{
+ border-radius: 25px;
+   padding-left: 10px;
+   width: 200px;
+   width:100%;
+   float:left;
+   background:#f9fae0;
+ }
+.confirm-eCash-wrapper *{
+  -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.confirm-eCash-wrapper-inner{
+  border:1px dashed #e0edcd;
+  color:#6d6d65;
+  padding:5px 5px 5px 37px;
+  width:100%;
+  float:left;
+  min-height:32px;
+  position:relative;
+}
+.confirm-eCash-wrapper-inner a{
+  color:#63aae4;
+}
+.confirm-eCash-wrapper-inner img{
+  position:absolute;
+  left:5px;
+  top:5px;
+  float:left;
+}
+
+.confirm-eCash-wrapper{
+  width:100%;
+  float:left;
+  padding:10px;
+  background:#f9fae0;
+  -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.confirm-eCash-wrapper *{
+  -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.confirm-eCash-wrapper-inner{
+  border:1px dashed #e0edcd;
+  color:#6d6d65;
+  padding:0px 0px 0px 38px;
+  width:100%;
+  float:left;
+  min-height:32px;
+  position:relative;
+}
+.confirm-eCash-wrapper-inner a{
+  color:#63aae4;
+}
+.confirm-eCash-wrapper-inner img{
+  position:absolute;
+  left:5px;
+  top:14px;
+  float:left;
+}
+.AdverTxt{
+    color: #999;
+    text-align: right;
+    font-size: .8em;Booking
+    max-width: 1024px;
+    margin: 0 auto;
+}
+
+     
+</style>
+</head>
+
+<body bgcolor="#fbfbfb">
+<table width="100%" bgcolor="#fbfbfb" border="0" cellspacing="0" cellpadding="0">
+
+  <tr>
+    <td><table align="center" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:12px;  color:#adadad;-webkit-text-size-adjust: none; text-align:left; max-width:620px; border:1px solid #fbfbfb">
+  <tr>
+    <td width="620">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+          <tr bgcolor="#f7f9f9">
+            <td></td>
+            <td height="1"><img src="$imagePath/604_zero.gif" width="1px" style="width:1px;" height="1" vspace="0" hspace="0" align="left" /></td>
+            <td></td>
+          </tr>
+          <tr bgcolor="#f7f9f9">
+            <td></td>
+            <td>
+              <!--Start_Header-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td height="10"  colspan="2"></td>
+  </tr>
+  <tr>
+    <td><table border="0" align="left" cellspacing="0" cellpadding="0">
+        <tr>
+          <td><a href="https://www.yatra.com" target="_blank"><div style="width:100%"><img src="https://ns.yatracdn.com/common/images/emailers/mailer_logo.png" alt="Yatra.com" title="Yatra.com" border="0" style="font-family:Arial, Helvetica, sans-serif; font-size:25px; color:#0595b7; max-width:213px; width:120px" vspace="0" hspace="0" align="left" /></div></a></td>
+        </tr>
+      </table><td>
+    <td width="190" align="right"><table width="190" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:12px; color:#666666; text-align:right;">
+
+        <tr>
+        <td>
+          <img width="25" height="25" src="$imagePath/manage-your-bookings.png"/>
+        </td>
+
+          <td style="padding-right:5px;">
+              <a href="https://secure.yatra.com/myaccount/user/index.html" target="_blank" style="margin-left:5px;text-decoration: none;font-weight:bold;color:#0095b9;font-size: 15px;white-space: nowrap;">Manage Your Booking</a>
+          </td>
+        </tr>
+      </table></td>
+  </tr>
+  <tr>
+    <td height="15"  colspan="2"></td>
+  </tr>
+</table>
+        <!--End_Header-->
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <td colspan="3" style="border-top:1px solid #dededd; font-size:1px; color:#FFFFFF" height="17">.</td>
+          </tr>
+          <tr>
+            <td colspan="3">
+              <!--Start_Banner-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td width="15"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+                    <td width="80" valign="top"><img src="$imagePath/$bookingImage" width="80" height="71" vspace="20" hspace="0" align="left" /></td>
+                    <td width="12"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+                    <td valign="top">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0"  style="font-family:arial; font-size:14px; color:#666766;">
+                        <tr>
+                        <td style="font-size: 16px;" font color= "#459eab">Dear $user.username,</td>
+                        </tr>
+                        <tr>
+                        <td height="15"></td>
+                        </tr>
+                        <tr>
+                        <td><strong style="font-size:20px;"><font color="#333333">$confirmMsg</font></strong></td>
+                        </tr>
+                         <tr>
+                        	<td height="13"></td>
+                        </tr>
+                        <tr>
+                           <td>
+                            #if($bookingStatus == 'failed')
+							<p><b>Booking status: </b>
+							<b>Unconfirmed/Pending</b>
+							</p>
+                            #end
+							</td>
+                        </tr>
+                        <tr>
+                        <td height="13"></td>
+                        </tr>
+						##YTPrime
+						 #if($bookingStatus != 'failed' && $isPrimeSelected)
+						    <tr>
+						      <td>
+						        <div>
+						          <p>
+						            <span>
+						              <img src="https://ns.yatracdn.com/common/flights/images/thumb.png" alt="Thumb"/>
+						            </span>
+						            <span>Thank you for subscribing to</span>
+						            <span>
+						              <img src="https://ns.yatracdn.com/common/flights/images/yatra-prime.png" alt="Yatra Prime"/>
+						            </span>
+						          </p>
+						          <p>
+						            <span>
+						              <img src="https://ns.yatracdn.com/common/flights/images/info.png" alt="Info"/>
+						            </span>
+						            Your Subscription is valid till <span class="confdate">$confirmationJson.primeDetails.planExpiryDate</span>
+						         </p>
+						        </div>
+						      </td>
+						    </tr>
+						    <tr>
+						      <td>
+						        <span>
+						          <h2 class="">
+						            <span class="P-benefit-text">Prime Benefits</span>
+						          </h2>
+						        </span>
+						      </td>
+						    </tr>
+						    #if($confirmationJson.primeDetails.primePageBenefits)
+						     <tr>
+						      <td>
+						      	#foreach($primeBenefits in $confirmationJson.primeDetails.primePageBenefits)
+						        <ul>
+						          <li>
+						            <p>
+						              <img src="$primeBenefits.benefitIcon"/>
+						              <span>$primeBenefits.benefitName</span>
+						            </p>
+						          </li>	
+						         </ul>
+						         #end
+						       </td>
+						      </tr>
+						      #end
+						    <tr>
+						      <td>
+						        <p>
+						          By selecting Yatra Prime, you agree to abide by the
+						          <a href="https://www.yatra.com/online/prime-tnc.html" class="color-blue" target="_blank">Terms and Conditions</a>
+						        </p>
+						      </td>
+						    </tr>
+						#end
+						##END
+                        <tr>
+                        <td style="font-size:16px;">Booking Reference Number - <font color="#0496b7">$confirmationJson.sc.payProp.superPnr</font></td>
+                        </tr>
+                        #if($GDSPendingTicketAndLessThen24Hour)
+                        <tr>
+                          <td>
+                        <div class="pending-eticket-gds-wrapper">
+                          <p class="eCase-description">
+                          <img src="https://ns.yatracdn.com/common/images/flights/error.svg" style="margin-top:15px" height="22" width="22"/>
+                          We are working with the airline to generate your  ticket number which will be sent to you shortly.
+                        If some additional information is required, our customer service representative will contact you shortly. You may also contact our customer service number <font color="red"><b>$phoneNumber</b></font>. Please keep your booking reference number handy at that time.
+                          </p>
+                        </div>
+                          </td>
+                        </tr>
+                        #end
+                        #if($GDSPendingTicketAndMoreThen24Hour)
+                        <tr>
+                          <td>
+                        <div class="pending-eticket-gds-wrapper">
+                          <p class="eCase-description">
+                          <img src="https://ns.yatracdn.com/common/images/flights/error.svg" style="margin-top:15px" height="22" width="22"/>
+                          We are working with the airline to generate your  ticket number which will be sent to you shortly.
+                        If some additional information is required, our customer service representative will contact you shortly. You may also contact us at <a href=$mailTo>$supportEmail</a>. Please mention your booking reference number.
+                          </p>
+                        </div>
+                          </td>
+                        </tr>
+                        #end
+                        #if($bannerMsg)
+                        <tr>
+                        <td style="font-size: 14px;color: #1e8c48;">Your booking is confirmed however because of some maintenance activity at Indigo's end we are not able to generate the PNRs for Indigo's flights. We'll be sending your e-ticket with your updated PNR numbers shortly. Please carry a printout of your e-ticket along with a valid government issued photo ID to the airline check-in counter.</td>
+                        </tr>
+                        #end
+                        <tr>
+                        <td height="13"></td>
+                        </tr>
+
+                        <tr>
+                        <td>$eticketMsg
+                        #if($payProp.type == 'PARTIAL')
+                        <br/><a href='https://secure.yatra.com/checkout/panel/paymentPanel.htm' target='_blank'><strong>Click here</strong></a> to make the balance payment.
+                        #end
+                        #if($isHff == 'true')
+                        <br/><p>Booking status:  <b>ON HOLD</b>
+                        <br/>Payment Due Date: <b>$ticketTimeLimit</b>
+            <br/><br><a href=$repricingUrl target="_blank" style="text-decoration:none; color:#0996b7">Click here</a><font style="font-size:14px;" color="#333333"> to make the payment</p>
+                        #end
+                        </td>
+                        </tr>
+                       #if($ylp!=0)
+                        <tr>
+                          <td>
+                      <div class="confirm-eCash-wrapper">
+                      #if($bookingStatus == 'success')
+                  <div class="confirm-eCash-wrapper-inner">
+                    <img src="$imagePath/Wallet_Icon.png" style="margin-top:15px" />
+                    #if($tenant eq "dom2" or $isTenantDom and $tenant ne "")
+                    <tr>
+                      <td>For any Support, write to us at email: $domSupportEmail or call us at $phoneNo between 9 am to 6 pm.</td>
+                    </tr>
+                    #elseif($tenant eq "int2" or $isTenantInt and $tenant ne "")
+                    <tr>
+                      <td>For any Support, write to us at email: $intSupportEmail or call us at $phoneNo between 9 am to 6 pm.</td>
+                    </tr>
+                    #end
+                    <p class="eCase-description">
+                      You will earn $ylp eCash for this booking. To know more about eCash and how to redeem it,
+                      <a href="https://www.yatra.com/online/ecash-faq">Click here</a>
+                    </p>
+                  </div>
+                   #end
+                </div>
+                          </td>
+                        </tr>
+                #end
+
+
+
+                        #foreach($key in $fltSchedule)
+                        #set($counter = $counter + 1)
+                        #if($key.get(0).specialfaretype == "STU" || $key.get(0).specialfaretype == "stu")
+                        <tr>
+                          <td style="display:block;margin-top:7px;padding-top:7px;border-top:1px solid #e9e9e9">
+              <span style="color: #ff0000">Important Note:</span> The special discounted fares are applicable only to the students pursuing studies in a bonafide school/university. A valid identity card issued by the respective University/ form signed by the head of the Institution/Student visa copy (I 20 form) is a necessary condition for travel under this offer and passengers will be required to produce the documents at the Airline check in counter at the airport.
+              </td>
+                          </tr>
+              #end
+              #break
+              #end
+                        </table>
+                    </td>
+                    <td width="12"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+                  </tr>
+                </table>
+        <!--End_Banner-->
+            </td>
+          </tr>
+          <tr>
+            <td colspan="3" height="17">.</td>
+          </tr>
+          <tr>
+            <td width="10"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+            <td width="600">
+              <!--Start_Content_area-->
+                <table width="100%" border="0" cellspacing="0" cellpadding="0"  align="center" style="text-align:left; font-family:arial; font-size:16px; color:#666666;">
+        #if ($refundResponse)
+                  <tr>
+                    <td>
+          #set($mode = $refundResponse.mode)
+          #set($walletRefundStatus = $refundResponse.walletRefundStatus)
+          #set($status = $refundResponse.status)
+
+          #if ($mode=="default" && !$walletRefundStatus && $charges.amtPaid>0)
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f7f7f7" style="border:1px solid #dadada;">
+
+                          <tr>
+                            <td colspan="3" height="14"></td>
+                          </tr>
+                          <tr>
+                            <td width="14"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+                            <td width="572">
+                              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:14px; color:#333333;">
+                                  <tr>
+                                    <td>
+                    #if($status=="FAILURE")
+                      Oops! We are facing some difficulty processing your refund request.
+                    #end
+                    #if($status=="SUCCESS" && $refundResponse.initiatedBy=="system")
+                      Due to inactivity from your end in taking a decision on where to refund your amount, we have already processed your refund request.
+                    #end
+                    #if($isRepaymentSecondTtid)
+                      The amount of <strong>$curSymb $numberTool.format("#,000.00",$repaymentAmount)</strong> will be refunded to your $payProp.mode
+                    #else
+                      The amount of <strong>$curSymb $numberTool.format("#,000.00",$charges.total)</strong> will be refunded to your $payProp.mode
+                    #end
+                    #if($payProp.cno)
+                      ending with $payProp.cno
+                    #end
+                    within 5-7 working days.
+                  </td>
+                                  </tr>
+                                  <tr>
+                                    <td height="12"></td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:14px; color:#333333;">
+                                          <tr>
+                                            <td width="20" valign="top"><img src="$imagePath/flight-ic.gif" width="20" height="17" vspace="0" hspace="0" align="absmiddle" /></td>
+                                            <td><a href="$searchPageUrl" target="_blank" style="text-decoration:none; color:#0095b8;">Click here</a> to create a fresh booking </td>
+                                          </tr>
+                                        </table>
+
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td height="12"></td>
+                                  </tr>
+                                  <tr>
+                                    <td>If this refund gets delayed for any reason beyond the specified timeToPickRecords, please feel free to
+contact our customer care at <strong>$phoneNumber</strong>. Please keep your booking reference number handy at that time.</td>
+                                  </tr>
+                                </table>
+              </td>
+                            <td width="14"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+                          </tr>
+                          <tr>
+                            <td colspan="3" height="14"></td>
+                          </tr>
+                        </table>
+                    #elseif($mode=="default" && $walletRefundStatus && $charges.amtPaid>0)
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f7f7f7" style="border:1px solid #dadada;">
+
+                          <tr>
+                            <td colspan="3" height="14"></td>
+                          </tr>
+                          <tr>
+                            <td width="14"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+                            <td width="572">
+                              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:14px; color:#333333;">
+                                  <tr>
+                                    <td>
+                    #if($status=="FAILURE")
+                      Oops! We are facing some difficulty processing your refund request.
+                    #end
+                    #if($status=="SUCCESS" && $refundResponse.initiatedBy=="system")
+                      Due to inactivity from your end in taking a decision on where to refund your amount, we have already processed your refund request.
+                    #end
+                    The amount of <strong>$curSymb $numberTool.format("#,000.00",$charges.amtPaid)</strong> will be refunded to your $payProp.mode
+                    #if($payProp.cno)
+                        ending with $payProp.cno
+                    #end
+                    within 5-7 working days.
+                    #if($walletRefundStatus=="SUCCESS")
+                      The eCash payment amount <strong>$curSymb $numberTool.format("#,000.00",$ecashAmount)</strong> has also been refunded.
+                      #set($walletBal = $math.add($walletBal , $ecashAmount))
+                    #end
+                  </td>
+                                  </tr>
+                                  <tr>
+                                    <td height="12"></td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:14px; color:#333333;">
+                                          <tr>
+                                            <td width="20" valign="top"><img src="$imagePath/flight-ic.gif" width="20" height="17" vspace="0" hspace="0" align="absmiddle" /></td>
+                                            <td><a href="$searchPageUrl" target="_blank" style="text-decoration:none; color:#0095b8;">Click here</a> to create a fresh booking  </td>
+                                          </tr>
+                                        </table>
+
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td height="12"></td>
+                                  </tr>
+                                  <tr>
+                                    <td>If this refund gets delayed for any reason beyond the specified timeToPickRecords, please feel free to
+contact our customer care at <strong>$phoneNumber</strong>. Please keep your booking reference number handy at that time.</td>
+                                  </tr>
+                                </table>
+              </td>
+                            <td width="14"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+                          </tr>
+                          <tr>
+                            <td colspan="3" height="14"></td>
+                          </tr>
+                        </table>
+          #elseif ($status=="SUCCESS")
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f7f7f7" style="border:1px solid #dadada;">
+                          <tr>
+                            <td colspan="3" height="14"></td>
+                          </tr>
+                          <tr>
+                            <td width="12"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+                            <td width="572">
+                              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:14px; color:#333333;">
+                                  <tr>
+                  #set($totalEcash = $math.add($ecashAmount, $charges.amtPaid))
+                                    <td>The amount of <strong>$curSymb $numberTool.format("#,000.00",$totalEcash)</strong> has been refunded as <strong>eCash</strong> to your yatra account <strong>$user.email</strong> successfully!</td>
+                  #set($walletBal = $math.add($walletBal , $totalEcash))
+                                  </tr>
+                                  <tr>
+                                    <td height="12"></td>
+                                  </tr>
+                                  <tr>
+                                    <td>
+                                      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:14px; color:#333333;">
+                                          <tr>
+                                            <td width="20" valign="top"><img src="$imagePath/login-ic.gif" width="36" height="37" vspace="0" hspace="0" align="absmiddle" /></td>
+                                            <td>You can use this eCash now to continue with your booking.
+                      <a href="$signInUrl?returnUrl=$esc.url($searchPageUrl)">Login & Continue Booking</a>
+
+                      <font style="font-size:12px;">(If you do not know or have forgotten your password, <a href="$forgotPasswordUrl" target="_blank" style="text-decoration:none; color:#0095b8;">click here</a>)</font></td>
+                                          </tr>
+                                        </table>
+
+                                    </td>
+                                  </tr>
+                                </table>
+              </td>
+                            <td width="14"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+                          </tr>
+                          <tr>
+                            <td colspan="3" height="14"></td>
+                          </tr>
+                        </table>
+                    #end
+
+
+          </td>
+          </tr>
+                #end
+                    <tr>
+                    <td height="10"></td>
+                  </tr>
+
+                        #if($isBannerEnabled == 'true')
+                           <!-- banner -->
+
+                               <tr>
+                                   <div class="AdverTxt"></div>
+                                   </tr>
+                               <tr>
+                                 <td style="text-align: center">
+                                   <a href="$!bannerRurl">
+                                           <img src="$!bannerUrl" />
+                                   </a>
+                                 </td>
+                               </tr>
+                                <tr>
+                                   <td height="30"></td>
+                                 </tr>
+                           <!-- banner -->
+                           #end
+
+                  #if($isBBG)
+                    <tr>
+                       <td colspan="3">
+                        <table>
+                          <tbody>
+                            <tr>
+
+                              <td>
+                                <img src="https://css.yatra.com/content/globalcdn/bongo-mailer-cdn/yatra-program/ico-yt-care-program.jpg" style="margin-right: 5px;">
+                              </td>
+                              <td style="font-size: 12px; font-weight: bold; color: #333;">
+                                  Covered under Yatra's
+                                  <span style="color: #4DC962; margin-right: 5px;">
+                                    Assure Protection
+                                  </span>
+                              <td>
+                                #if($ycpUrl)
+                                    <a href="$ycpUrl" target="_blank" style="font-size: 12px; text-decoration: none;">Know More</a>
+                                #end
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                      </tr>
+                  #end
+
+
+
+                  <tr>
+                    <td>
+                      <!--Start_FlightDetails-->
+                        <table width="100%" border="0" cellspacing="0" cellpadding="9" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                                  <tr>
+                                    <td bgcolor="#f1f1f1" style="border:1px solid #e9e9e9"><strong>Flight Details</strong></td>
+                                  </tr>
+                                  #set($delhiBanner = 0)
+                                  #set($bombayBanner = 0)
+                                  #set($bangloreBanner = 0)
+                                  #set($isHandBaggeOnlyAirline='false')
+                                  #set($isIndigoAirline='false')
+                    #set($counter = 0)
+                  #foreach($keyMaster in $fltSchedule.keySet())
+                  #set($key = $fltSchedule.get($keyMaster))
+                    #set($counter = $counter + 1)
+                    #set($sectorcount = $sectorcount + 1)
+                    #set($last = $key.get(0).OD.get(0).FS.size() - 1)
+                    #if($key.get(0).OD.get(0).FS.get($last).aac == "DEL")
+                     #set($delhiBanner = 1)
+                    #end
+                    #if($key.get(0).OD.get(0).FS.get($last).aac == "BOM")
+                     #set($bombayBanner = 1)
+                    #end
+                    #if($key.get(0).OD.get(0).FS.get($last).aac == "BLR")
+                     #set($bangloreBanner = 1)
+                    #end
+                     #if($key.get(0).dest == "AGX")
+                     #set($isDestAgatti = 'true')
+                    #end
+                    #if($key.get(0).org == "IXJ" || $key.get(0).org == "IXL" || $key.get(0).org == "SXR")
+                     #set($isOrgJammuSrinagarLeh = 'true')
+                    #end
+                    #set($fsCount = -1)
+                  #foreach($fs in $key.get(0).OD.get(0).FS)
+
+                    #set($fsCount = $fsCount + 1)
+                    #set($airlineLogo = "https://css.yatracdn.com/content/b2c-cdn/airline-logo-cdn/resources/images/logo/" + $fs.ac + ".gif")
+                    #set($isIndigoAirline='false')
+
+                    #if("Hand Baggage only"==$stringUtils.nullTrim($fs.bag))
+                      #set($isHandBaggeOnlyAirline = 'true')
+                    #end
+                    #if($fs.ac == '6E')
+                                           #set($isIndigoAirline='true')
+                                        #end
+                                       #if($isDFC)
+                                           <tr>
+                                              <td colspan="3">
+                                               <table>
+                                                 <tbody>
+                                                   <tr>
+                                                     <td>
+                                                       <img src="https://css.yatra.com/content/globalcdn/bongo-mailer-cdn/yatra-program/ico-yt-care-program.jpg" style="margin-right: 5px;">
+                                                     </td>
+                                                     <td style="font-size: 12px; font-weight: bold; color: #333;">
+                                                         Covered under Yatra's
+                                                         <span style="color: #4DC962; margin-right: 5px;">
+                                                             Cancellation Protection
+                                                         </span>
+                                                     <td>
+                                                       #if($ycpUrl)
+                                                           <a href="$ycpUrl" target="_blank" style="font-size: 12px; text-decoration: none;">Know More</a>
+                                                       #end
+                                                     </td>
+                                                   </tr>
+                                                 </tbody>
+                                               </table>
+                                             </td>
+                                             </tr>
+                                         #end
+
+
+                                  <tr>
+                                    <td valign="top"  style="border-bottom:1px solid #e9e9e9;">
+                                      <table width="71" align="left" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:13px; color:#666666; text-align:center;">
+                                          <tr>
+                                            <td align="center">
+                                                #if($fs.eqt)
+                                                    <div style="width: 37px; height: 35px; background-color: #666; border-radius: 3px;">
+                                                            #if($fs.eqt=='B')
+                                                                <img src="https://css.yatracdn.com/content/b2c-cdn/airline-logo-cdn/resources/images/logo/BUS.gif" style="padding: 4px 9px;"/>
+                                                            #elseif($fs.eqt=='T')
+                                                                <img src="https://css.yatracdn.com/content/b2c-cdn/airline-logo-cdn/resources/images/logo/TRAIN.gif" style="padding: 4px 9px;"/>
+                                                            #end
+                                                    </div>
+                                                #else
+                                                    <img src="$airlineLogo" width="50" height="25" vspace="0" hspace="0" align="absmiddle" /><br>
+                                                #end
+                                                $fs.an
+                                                #if($fs.eqt=='B')
+                                                    (Bus)
+                                                #elseif($fs.eqt=='T')
+                                                    (Train)
+                                                #end
+                                                <br>$fs.ac - $fs.fl<br></td>
+                                            <td width="20"></td>
+                                          </tr>
+                                          <tr>
+
+                                            <td colspan="2" height="10"></td>
+                                          </tr>
+                                        </table>
+                                        <table align="left" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:12px; color:#333333; max-width:342px;">
+                                          <tr>
+
+                        #set ( $dDate = $stringUtils.split($fs.ddt,"-") )
+                      #set ( $aDate = $stringUtils.split($fs.adt,"-") )
+
+                      <td style="font-size:13px;"><strong>$fs.dct</strong><br>$date.format('EEE, d MMM, yyyy', $date.toDate("dd MM yyyy" , "$dDate.get(2) $dDate.get(1) $dDate.get(0)"))<font color="#cecece">|</font> $fs.dd</td>
+                                            <td></td>
+                                            <td style="font-size:13px;"><strong>$fs.act</strong><br>$date.format('EEE, d MMM, yyyy', $date.toDate("dd MM yyyy" , "$aDate.get(2) $aDate.get(1) $aDate.get(0)")) <font color="#cecece">|</font> $fs.ad</td>
+                                            <td></td>
+                                          </tr>
+                                          <tr>
+                                            <td colspan="4" height="7"></td>
+                                          </tr>
+                                          <tr>
+                                            <td width="151" valign="top">$fs.dap <br><font color="#999999">Airport, $fs.dt</font></td>
+                                            <td width="18"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+                                            <td width="151" valign="top">$fs.aap<br><font color="#999999">Airport , $fs.at</font></td>
+                                            <td width="22"><img src="$imagePath/spacer.gif" width="10" height="1" vspace="0" hspace="0" align="left"></td>
+                                          </tr>
+                                          <tr>
+                                            <td colspan="4" height="10"></td>
+                                          </tr>
+                      <!-- upsell benefit -->
+                      <tr>
+                          #set($upSellBenefits = $upSell.get($keyMaster))
+                          #set($upSellBenefitsArray = $upSellBenefits.benefits)
+                         <td colspan="4" align="left" style="text-transform: uppercase; font-weight: bold; font-size: 11px;">
+                           #set($cc = 0)
+                         #foreach($upSellList in $upSellBenefitsArray)
+                           $upSellList.id
+                            #set($cc = $cc + 1)
+                            #if($cc < $upSellBenefitsArray.size())
+                           <font color="#999999"> | </font>
+                           #end
+                         #end
+                         #set($cc = 0)
+
+                         </td>
+                     </tr>
+
+                     </table>
+                    <table width="290" align="left" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:12px; color:#666766;">
+                                          <tr>
+                                            <td style="font-size:13px;">Airline PNR <strong style="color:#333333;">$fs.arpnr</strong><br><font style="font-size:12px;"><font color="#999999">Duration:</font> $fs.du</font><br/>
+
+
+                      <font color="#999999">$fs.cabin</font>
+                      <br/>
+                      #if($fs.nft!='')
+                      <font color="#999999">$fs.nft</font>
+                      #else
+                      <font color="#999999">$fs.ft</font>
+                      #end
+                      <br/>
+                      </td>
+
+                      <!--<td>
+                      #if($isIndigoAirline == 'true' && ($fs.arpnr) && ($fs.arpnr !='UNCONFIRMED'))
+                                              #set($pnr = $fs.arpnr)
+
+                       #set($img2 = $barcodeGenerator.generateBarCode($pnr))
+                      <div style="width:100%"><span style="float:left;clear:both;text-align:center;display:block;padding-left:20px">Your Airlines Reference</span>
+                      <img width="175" vspace="0" border="0" hspace="0" height="55" align="left" style="font-family:Arial, Helvetica, sans-serif; font-size:25px; color:#0595b7; max-width:213px; width:inherit" title="Yatra.com" alt="imagename" src="data:image/jpg;base64,${img2}"></img>
+                      </div>
+
+
+                      #end
+                      </td>-->
+
+
+
+                                          </tr>
+                                        </table>
+                    </td>
+                                  </tr>
+
+                                   <tr><td align="center" style="color:#f00">
+                                    #if(($tenant == 'int2') && ($fs.ac != $fs.oac))
+                                      #if($fs.occt == "")
+                                          #if($fs.cct != 'This flight is operated by ')
+                                            $fs.cct
+                                          #end
+                                      #else
+                                           $fs.occt
+                                    #end
+                                   #end
+                                  </td></tr>
+                                 <!-- <tr>
+                                    <td align="center" style="white-space:nowrap;">
+                                      <table width="284" border="0" cellspacing="0" cellpadding="4" style="font-family:arial; font-size:12px; color:#666766; text-align:left;">
+                                          <tr>
+                                            <td width="60">$fs.cabin</td>
+                                            <td width="10"><font color="#bdbbbb">|</font></td>-->
+
+              #if(!$fs.bag || $fs.bag == "" || $fs.bag == " " || $stringUtils.indexOf($fs.bag,"0") == 0)
+              #set($fs.bag = "0 KG")
+            #else
+              #if($isHandBaggeOnlyAirline == 'false')
+                    #set($fs.bag = $fs.bag + " (Free)")
+              #end
+            #end
+                                            <!--<td width="126">Baggage: $fs.bag</td>
+                                            <td width="10"><font color="#bdbbbb">|</font></td>
+                                            #if($fs.nft!='')
+                                            <td>$fs.ft</td>
+                                  #else
+                                  <td>$fs.nft</td>
+                                  #end
+                                          </tr>
+                                        </table>                  </td>
+                                  </tr>-->
+
+
+                  #if($isTenantInt == 'true')
+                      #if($fs.so || $fs.tv)
+                        <tr>
+                            <td>
+                               <div style="float: left;padding: 0px 0;width: 100%;">
+                                   <div style="border: 1px solid #e7e6e6;border-radius: 25px;float: left;left: 3%;padding: 7px 0; position: relative;width: 93%;text-align: center;">
+                                       #if((($fs.so.name && $fs.so.name !="") || ($fs.so.get(0).name && $fs.so.get(0).name!="")) && (($fs.so.code && $fs.so.code !="") || ($fs.so.get(0).code && $fs.so.get(0).code!="")))
+                                          <span>This flight has a Technical Stopover at #if( $fs.so.name ) $fs.so.name ( $fs.so.code)#elseif( $fs.so.get(0).name ) $fs.so.get(0).name ( $fs.so.get(0).code )#end #if($fs.so.gd), Time: $fs.so.gd  #elseif($fs.so.get(0).gd) , Time: $fs.so.get(0).gd  #end</span><br/>
+                                       #end
+
+                                       #set($visaRequiredCity = "")
+                                       #if($fs.so.name && $fs.so.name != "")
+                                            #set($visaRequiredCity = $fs.so.name)
+                                       #end
+                                       #if($visaRequiredCity=="" && $fs.so.get(0).name && $fs.so.get(0).name!="")
+                                            #set($visaRequiredCity = $fs.so.get(0).name)
+                                       #end
+
+                                       #if($fs.tv && $fs.tv=="1")
+                                            #if($visaRequiredCity != "")
+                                                #set($visaRequiredCity = $visaRequiredCity+" and ")
+                                            #end
+                                            #set($visaRequiredCity = $visaRequiredCity+$fs.act)
+                                       #end
+
+
+                                       #if(($fs.so.tv && $fs.so.tv == "1") || ($fs.so.get(0).tv && $fs.so.get(0).tv=="1")||($fs.so.tstv && $fs.so.tstv =="1") || ($fs.so.get(0).tstv && $fs.so.get(0).tstv=="1") || ($fs.tv && $fs.tv=="1"))
+                                           <span>NOTE: Transit visa may be required in $visaRequiredCity for Indian nationals.</span>
+                                       #end
+                                    </div>
+                                </div>
+                            </td>
+                         </tr>
+                      #end
+                  #end
+
+                  #if($isTenantDom == 'true')
+                    #if($fs.so)
+                      <tr>
+                        <td>
+                          <div style="float: left;padding: 0px 0;width: 100%;">
+                            <div style="border: 1px solid #e7e6e6;border-radius: 25px;float: left;left: 3%;padding: 7px 0; position: relative;width: 93%;text-align: center;">
+                              #if($fs.so !="")
+                                #set ( $viaStr = $stringUtils.split($fs.so," ") )
+                                #set ( $viaStrLast = $viaStr.size() - 1 )
+                                <span>This flight has a Technical Stopover at $viaStr.get($viaStrLast) </span><br/>
+                              #end
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    #end
+                  #end
+
+
+                 <!-- #if($isIndigoAirline =='true')
+                                                  <tr>
+                                      <td>
+                                 <div style="float: left;padding: 0px 0;width: 100%;">
+                                  <div style="border: 1px solid #e7e6e6;border-radius: 25px;float: left;left: 3%;padding: 7px 0; position: relative;width: 93%;text-align: center;">
+                                        <span>NOTE: Check-in counters will close 60 minutes prior to departure with effect from 19th Jan 2016 till 31st Jan 2016.</span>
+                                    </div></div>
+                                      </td></tr>
+                                      #end-->
+
+<!-- branded benefit -->
+
+ #if($confirmationJson.data.bfm)
+   <tr>
+   <td>
+                     <table style="background-color: #eee;width: 100%; font-family:arial; font-size:14px; color:#666666; text-align:left;" cellspacing="5">
+                         <tr>
+                             <td colspan="6"><strong>Inclusions</strong></td>
+                         </tr>
+                         <tr>
+                             <td colspan="6"></td>
+                         </tr>
+                         <tr>
+                             <!--Put this td inside loop-->
+
+                        #set($bfi = $key.get(0).OD.get(0).bfi)
+
+                        #if($bfi)
+
+                             #foreach ($benefit in $bfi.keySet())
+
+                             <td style="width:130px;vertical-align:top; ">
+                                 <table style="width: 100%;font-size: 13px;">
+                                     <tr>
+                                         <td style="text-align: center;">
+#set($brandedLogo = "https://www.yatra.com/content/b2c-cdn/bongo-mailer-cdn/branded-benfits/" + $benefit + ".gif")
+                                             <img style="width: 20px;" src="$brandedLogo" />
+
+                                         </td>
+                                     </tr>
+                                     <tr>
+                                         <td style="text-align: center;">$confirmationJson.data.bfm.get($benefit)</td>
+                                     </tr>
+                                     <tr>
+                                         <td style="text-align: center;">$bfi.get($benefit).v</td>
+                                     </tr>
+                                 </table>
+                             </td>
+ #end
+#end
+                         </tr>
+                     </table>
+                     </td>
+                     </tr>
+#end
+
+
+  <tr>
+                    <td>
+                      <!--Start_PassengersDetails-->
+                        <table width="100%" border="0" cellspacing="0" cellpadding="9" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                                  <tr>
+                                    <td bgcolor="#f1f1f1" style="border:1px solid #e9e9e9"><strong>Passenger Details</strong></td>
+                                  </tr>
+
+                   <tr><td>
+
+                  <table style="border-collapse: collapse;border-spacing: 0; width:700px;font-family:arial; font-size:12px; color:#666666; text-align:left;">
+            <tbody>
+              <tr style="border-bottom: 1px solid #d7d7d7;">
+                <th style="text-align:left"><strong>Name</strong></th>
+                <th style="text-align:left"><strong>Insurance No</strong></th>
+                <th style="text-align:left"><strong>Meals</strong></th>
+                <th style="text-align:left"><strong>Baggage</strong></th>
+                <th style="text-align:left"><strong>Seat No</strong></th>
+                <th style="text-align:left"><strong>Ticket No</strong></th>
+            </tr>
+
+                  #set($specReqMsg = '')
+                  #set($isMealOpt = 'false')
+                  #set($isOtherWheelOpt = 'false')
+
+                  #set($segmentcount = $fsCount)
+                  #foreach($pax in $paxList)
+                  #set($paxId = $pax.paxid)
+                  #set($dac = $fs.dac)
+                  #set($aac = $fs.aac)
+                  #set($mealopt = 'NA')
+                  #set($bagopt = 'NA')
+                  #set($otheropt = 'NA')
+                  #set($insopt = 'NA')
+                  #set($seatopt = 'NA')
+                  #set($mealStatus = '')
+                  #set($bagStatus = '')
+                  #set($seatStatus = 'NA')
+                  #set($specReq = 'SpecialRequest: ')
+                  #if($sectorcount == 1)
+                  #if(($pax.addons.meal) && ($pax.addons.meal != '') && ($pax.addons.meal.o.size() > 0) && ($pax.addons.meal.o.size() > $segmentcount) && ($pax.addons.meal.o.get($segmentcount)) )
+                      #if(($fs.mlT == '0' || $fs.ml == 'Free Meal'))
+                        #if($pax.addons.meal.o.get($segmentcount).desc != '')
+                            #set($mealopt = $pax.addons.meal.o.get($segmentcount).desc)
+                        #else
+                            #set($mealopt = 'Meal Included')
+                        #end
+                     #elseif(($fs.mlT == '1' || $fs.ml == 'Paid Meal'))
+                         #if($pax.addons.meal.o.get($segmentcount).desc != '')
+                             #set($mealopt = $pax.addons.meal.o.get($segmentcount).desc)
+                         #else
+                             #set($mealopt = 'Paid Meal')
+                         #end
+                     #elseif(($fs.mlT == '2' || $fs.ml == 'No Meal'))
+                         #set($mealopt = 'NA')
+                     #elseif(($fs.mlT == '1' || $fs.ml == 'Paid Meal') && ($pax.addons.meal.o.get($segmentcount)) && ($pax.addons.meal.o.get($segmentcount).isdata == 'true'))
+                         #if($pax.addons.meal.o.get($segmentcount).desc != '')
+                            #set($mealopt = $pax.addons.meal.o.get($segmentcount).desc)
+                         #else
+                            #set($mealopt = 'NA')
+                         #end
+                     #else
+                         #set($mealopt = 'NA')
+                     #end
+                      #set($mealStatus =  $pax.addons.meal.o.get($segmentcount).status)
+                    #if(($isMealOpt != 'true') && ($pax.addons.meal.o.size() > $segmentcount) && ($pax.addons.meal.o.get($segmentcount).convamt =='0'))
+                      #set($isMealOpt = 'true')
+                    #end
+                  #end
+                  #if(($pax.addons.bag) && ($pax.addons.bag!="") && ($pax.addons.bag.o.size() > 0) && ($pax.addons.bag.o.size() >= $segmentcount) && ($pax.addons.bag.o.get(0).isdata == 'true'))
+                    #set($bagopt =  $pax.addons.bag.o.get(0).desc + '(Paid)')
+                    #set($bagStatus =  $pax.addons.bag.o.get(0).status)
+                  #end
+                  #if(($pax.addons.seats) && ($pax.addons.seats!="") && ($pax.addons.seats.o.size() > 0) && ($pax.addons.seats.o.size() > $segmentcount) && ($pax.addons.seats.o.get($segmentcount).isdata == 'true'))
+                    #set($seatopt =  $pax.addons.seats.o.get($segmentcount).seatValue)
+                    #set($seatStatus =  $pax.addons.seats.o.get($segmentcount).status)
+                  #end
+                  
+                  #if(($pax.addons.other) && ($pax.addons.other!="") && ($pax.addons.other.o.size() > 0))
+                     #if(($pax.addons.other.o.get(0).isdata == 'true') && ($pax.addons.other.o.get(0).rph =='-1'))
+                     
+                     	<!--Others node is sector wise-->
+                     	#set($otheropt =  $pax.addons.other.o.get(0).desc)
+                     
+                     #elseif(($pax.addons.other.o.size() > $segmentcount) && ($pax.addons.other.o.get($segmentcount).isdata == 'true'))
+                     	
+                     	<!--Others node is segment wise-->
+						#set($otheropt =  $pax.addons.other.o.get($segmentcount).desc)
+		                #if($isOtherWheelOpt != 'true' && $pax.addons.other.o.get($segmentcount).typ == 'WCHR')
+		                   #set($isOtherWheelOpt = 'true')
+		                #end 
+                     #end
+                  #end
+                  
+                 #elseif($sectorcount == 2)
+
+                 <!-- Meals block for return trip -->
+
+                 #if(($pax.addons.meal) && ($pax.addons.meal != '') && ($pax.addons.meal.r.size() > 0) && ($pax.addons.meal.r.size() > $segmentcount)  && ($pax.addons.meal.r.get($segmentcount)) )
+                    #if(($fs.mlT == '0' || $fs.ml == 'Free Meal'))
+                        #if($pax.addons.meal.r.get($segmentcount).desc != '')
+                            #set($mealopt = $pax.addons.meal.r.get($segmentcount).desc))
+                        #else
+                            #set($mealopt = 'Meal Included')
+                        #end
+                     #elseif(($fs.mlT == '1' || $fs.ml == 'Paid Meal'))
+                         #if($pax.addons.meal.r.get($segmentcount).desc != '')
+                             #set($mealopt = $pax.addons.meal.r.get($segmentcount).desc)
+                         #else
+                             #set($mealopt = 'Paid Meal')
+                         #end
+                     #elseif(($fs.mlT == '2' || $fs.ml == 'No Meal'))
+                         #set($mealopt = 'NA')
+                     #elseif(($fs.mlT == '1' || $fs.ml == 'Paid Meal')  && ($pax.addons.meal.r.get($segmentcount)) && ($pax.addons.meal.r.get($segmentcount).isdata == 'true'))
+                         #if($pax.addons.meal.r.get($segmentcount).desc != '')
+                            #set($mealopt = $pax.addons.meal.r.get($segmentcount).desc)
+                         #else
+                            #set($mealopt = 'NA')
+                         #end
+                     #else
+                         #set($mealopt = 'NA')
+                     #end
+                   #set($mealStatus =  $pax.addons.meal.r.get($segmentcount).status)
+                   #if($isMealOpt != 'true' && $pax.addons.meal.r.size() > $segmentcount && $pax.addons.meal.r.get($segmentcount).convamt == '0')
+                     #set($isMealOpt = 'true')
+                   #end
+                 #end
+                 <!-- Meals block for return trip -->
+
+                 <!-- Baggage block for return trip -->
+                 #if(($pax.addons.bag) && ($pax.addons.bag!="") && ($pax.addons.bag.r.size() > 0) && ($pax.addons.bag.r.get(0).isdata == 'true'))
+                   #set($bagopt =  $pax.addons.bag.r.get(0).desc + '(Paid)')
+                   #set($bagStatus =  $pax.addons.bag.r.get(0).status)
+                 #end
+                 <!-- Baggage block for return trip -->
+
+                 <!-- Seats block for return trip -->
+                 #if(($pax.addons.seats) && ($pax.addons.seats!="") && ($pax.addons.seats.r.size() > 0) && ($pax.addons.seats.r.size() > $segmentcount) && ($pax.addons.seats.r.get($segmentcount).isdata == 'true'))
+                   #set($seatopt =  $pax.addons.seats.r.get($segmentcount).seatValue)
+                   #set($seatStatus =  $pax.addons.seats.r.get($segmentcount).status)
+                 #end
+                 <!-- Seats block for return trip -->
+
+                 <!-- Other block for return trip -->
+                  #if(($pax.addons.other) && ($pax.addons.other!="") && ($pax.addons.other.r.size() > 0))
+                     #if(($pax.addons.other.r.get(0).isdata == 'true') && ($pax.addons.other.r.get(0).rph =='-1'))
+                     
+                     	<!--Others node is sector wise-->
+                     	#set($otheropt =  $pax.addons.other.r.get(0).desc)
+                     
+                     #elseif(($pax.addons.other.r.size() > $segmentcount) && ($pax.addons.other.r.get($segmentcount).isdata == 'true'))
+                     	
+                     	<!--Others node is segment wise-->
+						#set($otheropt =  $pax.addons.other.r.get($segmentcount).desc)
+		                #if($isOtherWheelOpt != 'true' && $pax.addons.other.r.get($segmentcount).typ == 'WCHR')
+		                   #set($isOtherWheelOpt = 'true')
+		                #end 
+                     #end
+                  #end
+                 
+                 #else
+                    #set($mealopt = 'NA')
+                 #end
+
+                 #if(($fs.isGds == 'true') && !$pax.paxClass.contains('Infant') && ($fs.mlT != '1' && $fs.mlT != '2' && $fs.ml != 'Paid Meal' && $fs.ml != 'No Meal')
+                      && !($pax.addons.meal))
+                          #set($mealopt = 'Meal Included')
+                 #end
+
+                 #if( $fs.bag != '' && $bagopt != 'NA')
+                  #set($bagopt = $fs.bag + ' + ' +$bagopt)
+                 #elseif($fs.bag != '' && $bagopt == 'NA')
+                  #set($bagopt = $fs.bag)
+                 #else
+                  #set($bagopt = $bagopt)
+                 #end
+                  <tr>
+                                     <td colspan="5" height="15"></td>
+                                  </tr>
+                  <tr style="border-bottom: 1px solid #d7d7d7;">
+                   #set ( $paxType = $pax.paxClass.split(" ") )
+                    <td width="220px">$pax.title $pax.fname $pax.mname $pax.lname<br/>($paxType.get(0))</td>
+                  <td width="145px">#if($pax.addons.ins) $pax.addons.ins.id #else NA #end</td>
+                  <td width="125px">$mealopt
+                  #if(($mealStatus != '') && ($mealStatus == 'Unconfirmed'))
+                    <br/><span style="color: #f28510;font-size: 12px;">($mealStatus)</span>
+                  #elseif(($mealStatus != '') && ($mealStatus == 'Confirmed'  || $mealStatus == 'Confirmation Awaited'))
+                    <br/><span style="color: #999999;font-size: 12px;">($mealStatus)</span>
+                  #else
+                  #end
+                  </td>
+                  <td width="125px">#if($paxType.get(0) == 'Infant') NA #else $bagopt#end
+                  #if(($bagStatus != '') && ($bagStatus == 'Unconfirmed'))
+                    <br/><span style="color: #f28510;font-size: 12px;">($bagStatus)</span>
+                  #elseif(($bagStatus != '') && ($bagStatus == 'Confirmed' || $bagStatus == 'Confirmation Awaited'))
+                    <br/><span style="color: #999999;font-size: 12px;">($bagStatus)</span>
+                  #else
+                  #end
+                  </td>
+                  #if(($seatStatus != '' && $seatStatus == 'Unconfirmed') || $seatStatus == '')
+                    <td>
+                        <span style="color: #f28510;font-size: 12px;"> Unconfirmed </span>
+                    </td>
+                  #elseif(($seatStatus != '') && ($seatStatus == 'Confirmed' || $seatStatus == 'Confirmation Awaited'))
+                    <td width="75px">#if($paxType.get(0) == 'Infant') NA #else $seatopt#end
+                    <br/><span style="color: #999999;font-size: 12px;">($seatStatus)</span>
+                    </td>
+                  #else
+                    <td width="75px"><span style="color: #999999;font-size: 12px;"> NA </span></td>
+                  #end
+                  #if ($ticketNumberMapping.get("$dac$aac$paxId") && $ticketNumberMapping.get("$dac$aac$paxId")!='')
+                      <td width="125px">$ticketNumberMapping.get("$dac$aac$paxId")</td>
+                      #else
+                          <td width="125px">Pending</td>
+                  #end
+                  </tr>
+
+                <tr>
+                                     <td colspan="4" height="15"></td>
+                                  </tr>
+                    #if($otheropt != 'NA')
+                    #set($specReqMsg = $specReqMsg + ' '+$otheropt+' requested for passenger '+"$pax.title $pax.fname $pax.mname $pax.lname"+' , ')
+                    #end
+                                  #end
+
+                  </tbody></table></td></tr>
+                  #if($specReqMsg != '')
+                  #set ($specReqLength = $specReqMsg.length() - 3)
+                  #set ($specReqMsg = $specReqMsg.substring(0,$specReqLength))
+                   <tr style="font-size:12px;"><td><strong>$specReq</strong>$specReqMsg</td></tr>
+                  #end
+                                </table>
+                        <!--End_PassengersDetails-->                    </td>
+                  </tr>
+
+                    <!--Special Condition Starts here-->
+
+            #if(($fs.ac=='SG') && ($fs.arpnr!='' && $fs.arpnr!='UNCONFIRMED') && $isHandBaggeOnlyAirline=='true')
+            <tr>
+              <td>
+              <table cellspacing="0" cellpadding="9" style="background-color:#FFFFCC">
+                <tr>
+                  <td><img width="23" height="21" src="$imagePath/hand-baggage.png"/></td>
+                  <td style="font-family:arial; font-size:14px; color:#666666; text-align:left;">Special Conditions: Hand Baggage Only Fare - No free check-in baggage allowance. Check-in luggage will be chargeable at the airport</td>
+                  </tr>
+                 </table>
+                </td>
+              </tr>
+            #end
+            #set($isHandBaggeOnlyAirline='false')
+
+          <!--Special Condition Ends here-->
+                   #end
+                     #end
+                                </table>
+                        <!--End_FlightDetails-->                    </td>
+                  </tr>
+
+
+                    #set($refundInfoSlab =  $confirmationJson.data.cancellationInfo)
+                                                        #set($styleTd='border:1px solid #cfcfcf; min-width:72px')
+                                      #if($refundInfoSlab)
+                                      #set($maxLastcount=$math.sub($refundInfoSlab.columnsHeader.size(),2))
+
+                                                        <tr>
+                                                           <td>
+                                                              <table
+                                                                 style="border:1px solid #cfcfcf;background-color:#f1f1f1;padding: 10px; font-family:arial; font-size:13px; color:#666666"
+                                                                 width="100%" cellspacing="0" cellpadding="0" class="table">
+                                                                 <tr>
+                                                                    <td colspan="2">
+                                                                       <table cellspacing="0" cellpadding="9">
+                                                                          <tr>
+                                                                             <td style="color:#666666;text-align: left;font-size: 14px;">
+                                                                                <strong>
+                                                                                Cancellation Charges
+                                                                                </strong>
+                                                                             </td>
+                                                                          </tr>
+                                                                       </table>
+                                                                    </td>
+                                                                 </tr>
+                                                                 <tr>
+                                                                    <td>
+                                                                       <table style="width: 100%;background-color:#fff;" border="0" cellpadding="0" cellspacing="0">
+                                                                          <tr>
+                                                                             <td width="20%">
+                                                                                <table style="background-color:#fff;width: 100%;color:#000000;border:1px solid #cfcfcf">
+                                                                                   <tr>
+                                                                                      <td style="height:60px;">
+
+                                                                                      </td>
+                                                                                   </tr>
+                                                                                   #foreach($dataRow in $refundInfoSlab.dataRows)
+                                                                                   <tr>
+                                                                                      <td style="font-size:13px;height:28px; border-top: 1px solid #cfcfcf;text-align:center">
+                                                                                         <strong> $!dataRow.sector </strong>
+                                                                                      </td>
+                                                                                   </tr>
+                                                                                   #if($refundInfoSlab.refundAvailable==true )
+                                                                                   <tr>
+                                                                                      <td class="cell" style="font-size:14px;">
+                                                                                         Refund (per Person)
+                                                                                      </td>
+                                                                                   </tr>
+                                                                                   #end
+                                                                                   #end
+                                                                                </table>
+                                                                             </td>
+                                                                             <td width="80%">
+                                                                                <table style="background-color:#fff;width: 100%;text-align: center; font-size:12px" border="0" cellpadding="0" cellspacing="0">
+                                                                                   <tr>
+                                                    #set($lastCounter=0)
+                                                                                      #foreach($header in $refundInfoSlab.columnsHeader)
+                                                                                      <td>
+                                                                                         <table style="width: 100%;border-collapse: collapse; font-size:12px">
+                                                                                            <tr>
+
+
+                                                                                               <td colspan="3" style="$styleTd ; height:30px"><strong>
+                                                           #if($lastCounter>$maxLastcount)
+                                                                                                  > $dateConversion.dateConversion($!header.start)
+                                                           #else
+                                                            $dateConversion.dateConversion($!header.start) to
+                                                                                                  $dateConversion.dateConversion($!header.end)
+                                                            #end</strong>
+                                                                                               </td>
+                                                                                            </tr>
+                                                                                            <tr>
+                                                                                               #foreach($pax in $header.pax)
+                                                                                               <td  style="background-color:#f1f1f1; $styleTd ; height:30px "  >
+                                                                                               <strong>   $!pax </strong>
+                                                                                               </td>
+                                                                                               #end
+                                                                                            </tr>
+                                                                                         </table>
+                                                                                      </td>
+                                                      #set($lastCounter=$lastCounter+1)
+                                                                                      #end
+                                                                                   </tr>
+                                                                                   #foreach($dataRow in $refundInfoSlab.dataRows)
+                                                                                   <tr>
+                                                                                      #foreach($slab in $dataRow.slabs)
+                                                                                      <td>
+                                                                                         <table style="width: 100%;border-collapse: collapse;font-size:12px">
+                                                                                            <tr>
+                                                                                               #if($slab.cancellation.adt)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.cancellation.adt!="Not Available" )
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.cancellation.adt)
+                                                                                                  #else
+                                                                                                  $slab.cancellation.adt
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                               #if($slab.cancellation.chd)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.cancellation.chd!="Not Available" )
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.cancellation.chd)
+                                                                                                  #else
+                                                                                                 $slab.cancellation.chd
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                               #if($slab.cancellation.inf)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.cancellation.inf!="Not Available" )
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.cancellation.inf)
+                                                                                                  #else
+                                                                                                 $slab.cancellation.inf
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                            </tr>
+                                                                                         </table>
+                                                                                      </td>
+                                                                                      #end
+                                                                                   </tr>
+                                                                                   #if($refundInfoSlab.refundAvailable==true )
+                                                                                   <tr>
+                                                                                      #foreach($slab in $dataRow.slabs)
+                                                                                      <td>
+                                                                                         <table style="width: 100%;border-collapse: collapse;font-size:12px">
+                                                                                            <tr>
+                                                                                               #if($slab.cancellation.adt)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.cancellation.adt!="Not Available")
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.cancellation.adt)
+                                                                                                  #else
+                                                                                                  $slab.cancellation.adt
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                               #if($slab.cancellation.chd)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.cancellation.chd!="Not Available" )
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.cancellation.chd)
+                                                                                                  #else
+                                                                                                  $slab.cancellation.chd
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                               #if($slab.cancellation.inf)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.cancellation.inf!="Not Available")
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.cancellation.inf)
+                                                                                                  #else
+                                                                                                  $slab.cancellation.inf
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                            </tr>
+                                                                                         </table>
+                                                                                      </td>
+                                                                                      #end
+                                                                                   </tr>
+                                                                                   #end
+                                                                                   #end
+                                                                                </table>
+                                                                             </td>
+                                                                          </tr>
+                                                                       </table>
+                                                                    </td>
+                                                                 </tr>
+                                                              </table>
+                                                           </td>
+                                                        </tr>
+                                                        <tr>
+                                                           <td height="15"></td>
+                                                        </tr>
+
+                                                        #if($isTenantInt == 'false')
+
+                                                        <tr>
+                                                           <td>
+                                                              <table
+                                                                 style="border:1px solid #cfcfcf;background-color:#f1f1f1;padding: 10px; font-family:arial; font-size:13px; color:#666666"
+                                                                 width="100%" cellspacing="0" cellpadding="0" class="table">
+                                                                 <tr>
+                                                                    <td colspan="2">
+                                                                       <table cellspacing="0" cellpadding="9">
+                                                                          <tr>
+                                                                             <td style="color:#666666;text-align: left;font-size: 14px;">
+                                                                                <strong>
+                                                                                Date Change Charges
+                                                                                </strong>
+                                                                             </td>
+                                                                          </tr>
+                                                                       </table>
+                                                                    </td>
+                                                                 </tr>
+                                                                 <tr>
+                                                                    <td>
+                                                                       <table style="width: 100%;background-color:#fff;" border="0" cellpadding="0" cellspacing="0">
+                                                                          <tr>
+                                                                             <td width="20%">
+                                                                                <table style="background-color:#fff;width: 100%;color:#000000;border:1px solid #cfcfcf">
+                                                                                   <tr>
+                                                                                      <td style="height:60px;">
+
+                                                                                      </td>
+                                                                                   </tr>
+                                                                                   #foreach($dataRow in $refundInfoSlab.dataRows)
+                                                                                   <tr>
+                                                                                      <td style="font-size:12px;height:28px; border-top: 1px solid #cfcfcf;text-align:center">
+                                                                                         <strong> $!dataRow.sector </strong>
+                                                                                         <p style="font-size: 9px; margin: 0px;">$refundInfoSlab.rescheduleLabels.cancellation</p>
+                                                                                      </td>
+                                                                                   </tr>
+                                                                                   <tr>
+                                                                                      <td style="font-size:12px;height:28px; border-top: 1px solid #cfcfcf;text-align:center">
+                                                                                         <strong> $!dataRow.sector </strong>
+                                                                                          <p style=" font-size: 9px; margin: 0px;">$refundInfoSlab.rescheduleLabels.reschedule</p>
+                                                                                      </td>
+                                                                                   </tr>
+                                                                                   #end
+                                                                                </table>
+                                                                             </td>
+                                                                             <td width="80%">
+                                                                                <table style="background-color:#fff;width: 100%;text-align: center; font-size:12px" border="0" cellpadding="0" cellspacing="0">
+                                                                                   <tr>
+                                                      #set($lastCounter=0)
+                                                                                      #foreach($header in $refundInfoSlab.columnsHeader)
+                                                                                      <td>
+                                                                                         <table style="width: 100%;border-collapse: collapse; font-size:12px">
+                                                                                            <tr>
+
+                                                                                               <td colspan="3" style="$styleTd ; height:30px"><strong>
+                                                                                                   #if($lastCounter>$maxLastcount)
+                                                                                                  > $dateConversion.dateConversion($!header.start)
+                                                           #else
+                                                            $dateConversion.dateConversion($!header.start) to
+                                                                                                  $dateConversion.dateConversion($!header.end)
+                                                            #end</strong>
+                                                                                               </td>
+                                                                                            </tr>
+                                                                                            <tr>
+                                                                                               #foreach($pax in $header.pax)
+                                                                                               <td  style="background-color:#f1f1f1; $styleTd ; height:30px "  >
+                                                                                               <strong>   $!pax </strong>
+                                                                                               </td>
+                                                                                               #end
+                                                                                            </tr>
+                                                                                         </table>
+                                                                                      </td>
+                                                      #set($lastCounter=$lastCounter+1)
+                                                                                      #end
+                                                                                   </tr>
+                                                                                   #foreach($dataRow in $refundInfoSlab.dataRows)
+                                                                                   <tr>
+                                                                                      #foreach($slab in $dataRow.slabs)
+                                                                                      <td>
+                                                                                         <table style="width: 100%;border-collapse: collapse;font-size:12px">
+                                                                                            <tr>
+                                                                                               #if($slab.cancellation.adt)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.cancellation.adt!="Not Available" )
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.cancellation.adt)
+                                                                                                  #else
+                                                                                                  $slab.cancellation.adt
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                               #if($slab.cancellation.chd)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.cancellation.chd!="Not Available" )
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.cancellation.chd)
+                                                                                                  #else
+                                                                                                 $slab.cancellation.chd
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                               #if($slab.cancellation.inf)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.cancellation.inf!="Not Available" )
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.cancellation.inf)
+                                                                                                  #else
+                                                                                                 $slab.cancellation.inf
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                            </tr>
+                                                                                         </table>
+                                                                                      </td>
+                                                                                      #end
+                                                                                   </tr>
+                                                                                   <tr>
+                                                                                      #foreach($slab in $dataRow.slabs)
+                                                                                      <td>
+                                                                                         <table style="width: 100%;border-collapse: collapse;font-size:12px">
+                                                                                            <tr>
+                                                                                               #if($slab.reschedule.adt)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.reschedule.adt!="Not Available" )
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.reschedule.adt)
+                                                                                                  #else
+                                                                                                  $slab.reschedule.adt
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                               #if($slab.reschedule.chd)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.reschedule.chd!="Not Available" )
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.reschedule.chd)
+                                                                                                  #else
+                                                                                                 $slab.reschedule.chd
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                               #if($slab.reschedule.inf)
+                                                                                               <td style="height:30px; $styleTd">
+                                                                                                  #if($slab.reschedule.inf!="Not Available" )
+                                                                                                  $curSymb
+                                                                                                  $dateConversion.insertComma($!slab.reschedule.inf)
+                                                                                                  #else
+                                                                                                 $slab.reschedule.inf
+                                                                                                  #end
+                                                                                               </td>
+                                                                                               #end
+                                                                                            </tr>
+                                                                                         </table>
+                                                                                      </td>
+                                                                                      #end
+                                                                                   </tr>
+                                                                                   #end
+                                                                                </table>
+                                                                             </td>
+                                                                          </tr>
+                                                                       </table>
+                                                                    </td>
+                                                                 </tr>
+                                                              </table>
+                                                           </td>
+                                                        </tr>
+                                                        <tr>
+                                                           <td height="15"></td>
+                                                        </tr>
+
+                                                        #end
+
+                                      #end
+                                                        <!--End RefundInfoSlab -->
+
+
+
+                  #set($hotelDetails = $confirmationJson.data.hotelDetails)
+                  #if($hotelDetails)
+                  <tr>
+                    <td height="15"></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <!--Start_HotelsDetails-->
+
+             <table width="100%" border="0" cellspacing="0" cellpadding="9" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+              <tr>
+                <td bgcolor="#f1f1f1" style="border:1px solid #e9e9e9"><strong>Hotel Details</strong></td>
+              </tr>
+              <tr>
+                <td valign="top" style="font-style: normal;border-bottom:1px solid #ececec"><span style="font-size: 16px; color: #333; display: block;">$hotelDetails.hn<span>
+
+                #if ($hotelDetails.hr == 1)
+                  <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                   <img src="/air-checkout/resources/images/grey-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/grey-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/grey-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/grey-star.gif" height="13" vspace="0" hspace="0">
+              #elseif ($hotelDetails.hr == 2)
+                <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/grey-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/grey-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/grey-star.gif" height="13" vspace="0" hspace="0">
+              #elseif ($hotelDetails.hr == 3)
+                <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/grey-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/grey-star.gif" height="13" vspace="0" hspace="0">
+              #elseif ($hotelDetails.hr == 4)
+                <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/grey-star.gif" height="13" vspace="0" hspace="0">
+              #elseif ($hotelDetails.hr == 5)
+                <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+                  <img src="/air-checkout/resources/images/yellw-star.gif" height="13" vspace="0" hspace="0">
+              #end
+                </span></span> <span style="font-size: 12px; color: #666766;">$hotelDetails.hc $hotelDetails.hcc</span></td>
+              </tr>
+             <tr>
+                <td align="left" style="font-style: normal;border-bottom:1px solid #ececec">
+                  <table cellpadding="0" cellspacing="0" border="0" width="260" align="left" style="width:33%; font-family:arial;">
+                    <tr>
+                    <td width="70" style="font-size: 12px; color: #333;">Check-in
+
+                        <table width="70" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:12px; color:#333333; border:1px solid #999999; text-align:center">
+                          <tr>
+                          #set ($dateArray = $stringUtils.split($hotelDetails.fcid," "))
+                            <td bgcolor="#999999" align="center" height="20"><font color="#ffffff">$dateArray.get(0)</font></td>
+                          </tr>
+                          <tr>
+                            <td height="40"><strong style="font-size:14px; color:#666666">$dateArray.get(1)</strong><br>$dateArray.get(2)</td>
+                          </tr>
+                        </table>
+                   </td>
+                    <td width="90" align="center" style="font-size: 12px"><img src="/air-checkout/resources/images/ico-moon.png" alt="Icon of moon" height="11" width="11"> <br />
+                      $hotelDetails.tn Nights</td>
+                    <td align="left" width="70" style="font-size: 12px">Check-out <br />
+
+                        <table width="70" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:12px; color:#333333; border:1px solid #999999; text-align:center">
+                          <tr>
+                          #set ($dateArray = $stringUtils.split($hotelDetails.fcod," "))
+                            <td bgcolor="#999999" align="center" height="20"><font color="#ffffff">$dateArray.get(0)</font></td>
+                          </tr>
+                          <tr>
+                            <td height="40"><strong style="font-size:14px; color:#666666">$dateArray.get(1)</strong><br>$dateArray.get(2)</td>
+                          </tr>
+                        </table>
+                    </td>
+                    <td width="30"></td>
+                  </tr>
+                  </table>
+                    <table cellpadding="0" cellspacing="0" border="0" width="33%" style="width:33%; font-family:arial;" align="left">
+                    <tr>
+                      <td height="18"></td>
+                    </tr>
+                    <tr>
+                        <td valign="top"><h3 style="font-size: 11px; color: #333; font-weight: normal; margin:0; padding:0">$hotelDetails.nr ROOMS FOR $hotelDetails.tn NIGHTS</h3>
+                        #set ($rooms = $hotelDetails.rooms)
+                        #foreach($room in $rooms)
+                        <p style="font-size: 12px; color: #666766; margin:0; padding:0">Room $room.rid - $room.guest</p>
+                  #end
+                       </td>
+                      </tr>
+                  </table>
+                    <table cellspacing="0" cellpadding="0" border="0" width="33%" style="width:33%; font-family:arial;" align="left">
+                    <tr>
+                      <td height="18"></td>
+                    </tr>
+                    <tr>
+                        <td valign="top"><h3 style="font-size: 11px; color: #333; font-weight: normal; margin:0; padding:0">ROOM TYPE</h3>
+                        <p style="font-size: 12px; color: #666766; margin:0; padding:0">$hotelDetails.rtype</p></td>
+                      </tr>
+                  </table></td>
+              </tr>
+              <tr>
+                <td style="border-bottom:1px solid #ececec" align="left">
+                  <table align="left" width="226" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:14px; color:#666666; text-align:left; line-height:20px;">
+                      <tr>
+                        <td colspan="2" style="font-size: 16px; color: #333; display: block;">INCLUSIONS</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" height="9"></td>
+                      </tr>
+                      #set ($inclusions = $hotelDetails.inclusions)
+                      #if($inclusions.size() > 0)
+                    #foreach($inclusion in $inclusions)
+                   <tr>
+                        <td width="13"><img src="/air-checkout/resources/images/bull.png" width="7"  height="7" vspace="0"  hspace="0"  align="left"></td>
+                        <td>$inclusion</td>
+                      </tr>
+                  #end
+                  #end
+                    </table>
+                <table align="left" width="226" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:14px; color:#666666; text-align:left; line-height:20px;">
+                      <tr>
+                        <td colspan="2" style="font-size: 16px; color: #333; display: block;">EXCLUSIONS</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" height="9"></td>
+                      </tr>
+                       #set ($exclusions = $hotelDetails.exclusions)
+                        #if($exclusions.size() > 0)
+                    #foreach($exclusion in $exclusions)
+                    <tr>
+                        <td width="13"><img src="/air-checkout/resources/images/bull.png" width="7"  height="7" vspace="0"  hspace="0"  align="left"></td>
+                        <td>$exclusion</td>
+                      </tr>
+                  #end
+                  #end
+                    </table>
+                </td>
+              </tr>
+              <tr>
+                <td align="center">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size:12px; font-family:arial;">
+                          <tr>
+                            <td><span style="font-size: 14px; color: #333;">HOTEL ADDRESS:$hotelDetails.hadd</td>
+                          </tr>
+                          <tr>
+                            <td height="10"></td>
+                          </tr>
+                          <tr>
+                            <td><span style="font-size: 14px; color: #333;">PHONE:</span> $hotelDetails.hpn</td>
+                          </tr>
+                        </table>
+
+                </td>
+              </tr>
+            </table>
+                        <!--End_HotelsDetails-->
+                      </td>
+                  </tr>
+                  #end
+
+                  #if($confirmationJson.showCabBanner)
+                      <tr>
+                        <td align="center">
+                            <img width="700" height="100" src="$confirmationJson.cabBannerUrl"/>
+                        </td>
+                      </tr>
+                  #end
+                  <tr>
+                    <td height="15"></td>
+                  </tr>
+
+
+
+
+                  <tr>
+                    <td>
+                      <!--Start_PaymentDetails-->
+                      #set($packageFareDetails = $confirmationJson.data.packageFareDetails)
+                      #if($packageFareDetails)
+
+                      <table width="100%" border="0" cellspacing="0" cellpadding="9" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                          <tr>
+                            <td bgcolor="#f1f1f1" style="border:1px solid #e9e9e9"><strong>Payment Details</strong></td>
+                          </tr>
+              #if($charges.tfp != $charges.amtPaid)
+                          <tr>
+                            <td valign="top"  style="border-bottom:1px solid #e9e9e9;">
+                              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:13px; color:#333333; line-height:25px;">
+                                  <tr>
+                                    <td width="140">Flight & Hotel Cost</td>
+                                    <td align="right"><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$packageFareDetails.tbf)</td>
+                                  </tr>
+                                  <tr>
+                                    <td width="140">Fee & Surcharge</td>
+                                    <td align="right"><span class="RupeeSign">$curSymb</span>$numberTool.format("#,000.00",$packageFareDetails.tax)</td>
+                                  </tr>
+                  #if($packageFareDetails.dis)
+                                  <tr>
+                                    <td><font color="#888888" style="font-size:12px;">(-)</font> Combo Discount</td>
+                                    <td align="right"><font color="#888888" style="font-size:12px;">(-)</font><span class="RupeeSign">$curSymb</span>$numberTool.format("#,000.00", $packageFareDetails.dis)</td>
+                                  </tr>
+                  #end
+                  #if($packageFareDetails.st)
+                                  <tr>
+                                    <td>Service Tax</td>
+                                    <td align="right"><span class="RupeeSign">$curSymb</span> $packageFareDetails.st</td>
+                                  </tr>
+                  #end
+                  #if($charges.icb)
+                                  <tr>
+                                    <td><font color="#888888" style="font-size:12px;">(-)</font> Special Discount</td>
+                                    <td align="right"><font color="#888888" style="font-size:12px;">(-)</font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$charges.icb)</td>
+                                  </tr>
+                  #end
+                  #if($charges.qbd)
+                                  <tr>
+                                    <td><font color="#888888" style="font-size:12px;">(-)</font> $charges.dType Discount</td>
+                                    <td align="right"><font color="#888888" style="font-size:12px;">(-)</font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$charges.qbd)</td>
+                                  </tr>
+                  #end
+                  #if($ecashAmount>0)
+                                  <tr>
+                                    <td><font color="#888888" style="font-size:12px;">(-)</font> eCash Redeemed</td>
+                                    <td align="right"><font color="#888888" style="font-size:12px;">(-)</font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$ecashAmount)</td>
+                                  </tr>
+                  #end
+                  #if($ixigoMoneyAmount>0)
+                                                    <tr>
+                                                      <td><font color="#888888" style="font-size:12px;">(-)</font> Ixigo Money Redeemed</td>
+                                                      <td align="right"><font color="#888888" style="font-size:12px;">(-)</font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$ixigoMoneyAmount)</td>
+                                                    </tr>
+                  #end
+                  #set($ssr=0)
+                  #if($charges.meal && $charges.meal>0)
+                    #set($ssr = $math.add($ssr,$charges.meal))
+                  #end
+                  #if($charges.bag && $charges.bag>0 )
+                    #set($ssr = $math.add($ssr,$charges.bag))
+                  #end
+                  #if($ssr > 0)
+                                  <tr>
+                                    <td><font color="#888888" style="font-size:12px;"></font> Special Services (Meals & Baggage)</td>
+                                    <td align="right"><font color="#888888" style="font-size:12px;"></font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$ssr)</td>
+                                  </tr>
+                  #end
+                  #if($addons)
+                  #foreach ($mapEntry in $addons.entrySet())
+                    <tr>
+                      <td><font color="#888888" style="font-size:12px;"></font>$mapEntry.value.label</td>
+                      <td align="right"><font color="#888888" style="font-size:12px;"></font><span class="RupeeSign">$curSymb</span>
+                        #if($mapEntry.value.amount<100)
+                          $numberTool.format("#0.00",$!mapEntry.value.amount)
+                        #else
+                          $numberTool.format("#,000.00",$!mapEntry.value.amount)
+                        #end
+                    </tr>
+                  #end
+                  #end
+                  #if($charges.convFee>0 && !$isRepaymentSecondTtid)
+                  <tr>
+                    <td><font color="#888888" style="font-size:12px;"></font>Online Processing Fee</td>
+                    <td align="right"><font color="#888888" style="font-size:12px;"></font><span class="RupeeSign">$curSymb</span>
+                      #if($charges.convFee>100)$numberTool.format("#,000.00",$!charges.convFee)
+                                                            #elseif($charges.convFee>10)$numberTool.format("#,00.00",$!charges.convFee)
+                                                            #elseif($charges.convFee>0)$numberTool.format("#,0.00",$!charges.convFee)
+                                                            #else
+                                                            $charges.convFee
+                                                            #end
+                     </td>
+                  </tr>
+                  #end
+                  #if($charges.amtPaid != $charges.total)
+                  <tr>
+                    <td><font color="#888888" style="font-size:12px;"></font>Total Amount</td>
+                    #set ($finalTotalAmount = $charges.total - $packageFareDetails.dis)
+                    <td align="right"><font color="#888888" style="font-size:12px;"></font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$finalTotalAmount)</td>
+                  </tr>
+                  #end
+                                </table>                  </td>
+                          </tr>
+              #end
+                          <tr>
+                            <td valign="top">
+                              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:13px; color:#333333;">
+                                  <tr>
+                                    #if($charges.amtPaid<0)
+
+                            #set($youPaid = "You will be Paid")
+                            #set($amtPaid = (-1)*$charges.amtPaid)
+                            #else
+                            #set($youPaid = "You Paid")
+                            #if(!$isRepaymentSecondTtid)
+                              #set($amtPaid = $charges.amtPaid)
+                            #else
+                              #set($amtPaid = $repaymentAmount)
+                            #end
+                            #end
+                            #if($isCreditShellBooking=='true' && $charges.amtPaid<0 )
+                             <td width="165">Airline credit balance<br></td>
+                            #else
+                             <td width="165">$youPaid<br><font style="font-size:12px;" color="#888888">Payment Mode : $payProp.mode</font></td>
+                            #end
+
+                                    <td align="right"><font style="font-size:16px;" color="#333333"><strong><span class="RupeeSign">$curSymb</span>
+                                      #if($charges.amtPaid>100)$numberTool.format("#,000.00",$amtPaid)
+                                      #elseif($charges.amtPaid>10)$numberTool.format("#,00.00",$amtPaid)
+                                      #elseif($charges.amtPaid>0)$numberTool.format("#,0.00",$amtPaid)
+                                      #else
+                                      $amtPaid
+                                      #end
+                                    </strong></font></td>
+                                  </tr>
+                                  </table>
+                                  #if($payProp.type == 'PARTIAL')
+                                    #set($dueDate = '')
+                                     #foreach($key in $fareDetails)
+                                       #foreach($id in $key)
+                      #set($dueDate = $id.O.dueDate)
+                      #break
+                    #end
+                  #end
+                                  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:13px; color:#333333;">
+                  <tr>
+                                      <td width="165">Outstanding Balance<br><font style="font-size:12px;" color="#888888">Due Date: $dueDate</font></td>
+                                      <td align="right"><font style="font-size:16px;" color="#333333"><strong><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$charges.balAmt)</strong></font></td>
+                                    </tr>
+                                   </table>
+                  #end                  </td>
+                          </tr>
+                        </table>
+
+                      #else
+                      <table width="100%" border="0" cellspacing="0" cellpadding="9" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                          <tr>
+                            <td bgcolor="#f1f1f1" style="border:1px solid #e9e9e9"><strong>Payment Details</strong></td>
+                          </tr>
+              #if($isHff == 'true' || $charges.tfp != $charges.amtPaid)
+                          <tr>
+                            <td valign="top"  style="border-bottom:1px solid #e9e9e9;">
+                              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:13px; color:#333333; line-height:25px;">
+                                  <tr>
+                                  #if($isRepaymentSecondTtid)
+                            <td width="140">Pay Extra Amount</td>
+                                    <td align="right"><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$repaymentAmount)</td>
+                            #else
+                            <td width="140">Total Flight Price</td>
+                              <td align="right"><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$charges.tfp)</td>
+                            #end
+
+                                  </tr>
+                  #if($charges.disc)
+                                  <tr>
+                                    <td><font color="#888888" style="font-size:12px;">(-)</font> Discount</td>
+                                    <td align="right"><font color="#888888" style="font-size:12px;">(-)</font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$charges.disc)</td>
+                                  </tr>
+                  #end
+                  #if($charges.icb)
+                                  <tr>
+                                    <td><font color="#888888" style="font-size:12px;">(-)</font> Special Discount</td>
+                                    <td align="right"><font color="#888888" style="font-size:12px;">(-)</font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$charges.icb)</td>
+                                  </tr>
+                  #end
+                  #if($charges.qbd)
+                                  <tr>
+                                    <td><font color="#888888" style="font-size:12px;">(-)</font> $charges.dType Discount</td>
+                                    <td align="right"><font color="#888888" style="font-size:12px;">(-)</font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$charges.qbd)</td>
+                                  </tr>
+                  #end
+                  #if($ecashAmount>0)
+                                  <tr>
+                                    <td><font color="#888888" style="font-size:12px;">(-)</font> eCash Redeemed</td>
+                                    <td align="right"><font color="#888888" style="font-size:12px;">(-)</font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$ecashAmount)</td>
+                                  </tr>
+                  #end
+                  #if($ixigoMoneyAmount && $ixigoMoneyAmount>0)
+                                                                      <tr>
+                                                                        <td><font color="#888888" style="font-size:12px;">(-)</font> Ixigo Money Redeemed</td>
+                                                                        <td align="right"><font color="#888888" style="font-size:12px;">(-)</font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$ixigoMoneyAmount)</td>
+                                                                      </tr>
+                  #end
+                  #if($isReschd=='true' && $reschdAmount>0)
+                                  <tr>
+                                    <td>$reschdLabel</td>
+                                    <td align="right"><font color="#888888" style="font-size:12px;">(-)</font><span class="RupeeSign">$curSymb</span> $reschdAmount</td>
+                                  </tr>
+                  #end
+
+                  #set($ssr=0)
+                  #if($charges.meal && $charges.meal>0)
+                    #set($ssr = $math.add($ssr,$charges.meal))
+                  #end
+                  #if($charges.bag && $charges.bag>0 )
+                    #set($ssr = $math.add($ssr,$charges.bag))
+                  #end
+                  #if($charges.other && $charges.other>0 )
+                    #set($ssr = $math.add($ssr,$charges.other))
+                  #end
+                  #if($charges.seat && $charges.seat>0 )
+                    #set($ssr = $math.add($ssr,$charges.seat))
+                  #end
+
+
+
+                  #if($ssr > 0)
+                      <tr>
+                        <td><font color="#888888" style="font-size:12px;"></font> Special Services (Meals,Baggage,Seat & Others)</td>
+                        <td align="right"><font color="#888888" style="font-size:12px;"></font><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$ssr)</td>
+                      </tr>
+                  #end
+                  #if($addons)
+                  #foreach ($mapEntry in $addons.entrySet())
+                    <tr>
+                      <td><font color="#888888" style="font-size:12px;"></font>$mapEntry.value.label</td>
+                      <td align="right"><font color="#888888" style="font-size:12px;"></font><span class="RupeeSign">$curSymb</span>
+                      #if($mapEntry.value.amount<100)
+                       $numberTool.format("#0.00",$!mapEntry.value.amount)
+                     #else
+                       $numberTool.format("#,000.00",$!mapEntry.value.amount)
+                     #end
+                    </tr>
+                  #end
+                  #end
+                  #if($charges.convFee>0 && !$isRepaymentSecondTtid)
+                  <tr>
+                    <td><font color="#888888" style="font-size:12px;"></font>Online Processing Fee</td>
+                    <td align="right"><font color="#888888" style="font-size:12px;"></font><span class="RupeeSign">$curSymb</span>
+                      #if($charges.convFee>100)$numberTool.format("#,000.00",$!charges.convFee)
+                                                            #elseif($charges.convFee>10)$numberTool.format("#,00.00",$!charges.convFee)
+                                                            #elseif($charges.convFee>0)$numberTool.format("#,0.00",$!charges.convFee)
+                                                            #else
+                                                            $charges.convFee
+                                                            #end
+                     </td>
+                  </tr>
+                  #end
+                   #if($isHff == 'true' || ($charges.amtPaid != $charges.total))
+                  <tr>
+                    <td><font color="#888888" style="font-size:12px;"></font>Total Amount</td>
+                    <td align="right"><font color="#888888" style="font-size:12px;"></font><span class="RupeeSign">$curSymb</span>$numberTool.format("#,000.00",$charges.total)</td>
+                  </tr>
+                  #end
+                                </table>                  </td>
+                          </tr>
+              #end
+                          <tr>
+                            <td valign="top">
+                #if($isHff == 'true')
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:13px; color:#333333;">
+                <tr>
+                    <td width="165">You Paid</td>
+                    <td align="right"><font style="font-size:16px;" color="#333333"><strong><span class="RupeeSign">$curSymb</span> 0 </strong></font></td>
+                </tr>
+                <tr>
+                  <td width="165">Payment Due Date</td>
+                  <td align="right"><font style="font-size:16px;" color="#333333"><strong>$ticketTimeLimit</strong></font></td>
+                </tr>
+                 </table>
+                 #else
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:13px; color:#333333;">
+                    <tr>
+                    #if($charges.amtPaid<0)
+                    #set($youPaid = "You will be Paid")
+                    #set($amtPaid = (-1)*$charges.amtPaid)
+                    #else
+                    #set($youPaid = "You paid")
+                      #if(!$isRepaymentSecondTtid)
+                    #set($amtPaid = $charges.amtPaid)
+                #else
+                     #set($amtPaid = $repaymentAmount)
+                    #end
+                    #end
+
+                   #if($isCreditShellBooking=='true' && $charges.amtPaid<0 )
+                             <td width="165">Airline credit balance<br></td>
+                            #else
+                             <td width="165">$youPaid<br><font style="font-size:12px;" color="#888888">Payment Mode : $payProp.mode</font></td>
+                            #end
+                    <td align="right"><font style="font-size:16px;" color="#333333"><strong><span class="RupeeSign">$curSymb</span>
+                      #if($charges.amtPaid>100)$numberTool.format("#,000.00",$amtPaid)
+                      #elseif($charges.amtPaid>10)$numberTool.format("#,00.00",$amtPaid)
+                      #elseif($charges.amtPaid>0)$numberTool.format("#,0.00",$amtPaid)
+                      #else
+                      $amtPaid
+                      #end</strong></font></td>
+                    </tr>
+                    </table>
+                    #if($payProp.type == 'PARTIAL')
+                    #set($dueDate = '')
+                     #foreach($key in $fareDetails)
+                       #foreach($id in $key)
+                        #set($dueDate = $id.O.dueDate)
+                        #break
+                      #end
+                    #end
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:13px; color:#333333;">
+                    <tr>
+                      <td width="165">Outstanding Balance<br><font style="font-size:12px;" color="#888888">Due Date: $dueDate</font></td>
+                      <td align="right"><font style="font-size:16px;" color="#333333"><strong><span class="RupeeSign">$curSymb</span> $numberTool.format("#,000.00",$charges.balAmt)</strong></font></td>
+                    </tr>
+                     </table>
+                    #end
+                #end
+              </td>
+                          </tr>
+                        </table>
+                       #end
+
+                        <!--End_PaymentDetails-->                    </td>
+                  </tr>
+                  <tr>
+                    <td height="18"></td>
+                  </tr>
+
+                  #if($bookingStatus != 'failed')
+                 <!-- Start Compulsory guidelines for Domestic Travel Section -->
+                  <tr>
+                    <td>
+                      <table width="100%" border="0" cellspacing="0" cellpadding="6" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+          <tr>
+          <td bgcolor="#f1f1f1" style="border:1px solid #e9e9e9"><strong> Compulsory Guidelines for Domestic Travel</strong></td>
+                    </tr>
+
+            <td><p>The Government has decided for recommencement of domestic air travel of passengers with effect from 25th May 2020. In order to ensure safety of the passengers during prevailing circumstances due to COVID I9 pandemic, precautionary measures need to be taken by passengers</p></td>
+                          <tr>
+            <td>
+              <table width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>All travellers above 14 years of age must have the Aarogya Setu app activated on their mobiles before arriving at the airport.</td>
+                </tr>
+              </table>
+            </td>
+                    </tr>
+                    <tr>
+            <td>
+              <table width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>Travellers will be required to certify the status of their health through the Aarogya Setu app or a self-declaration form.
+
+                  </td>
+                </tr>
+              </table>
+            </td>
+                    </tr>
+                    <tr>
+            <td>
+              <table  width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>
+                    No physical check-in at airport counters would be done. Only those passengers with confirmed web check-in will be allowed to enter the airport.
+                  </td>
+                            </tr>
+              </table>
+            </td>
+          </tr>
+
+                <tr>
+                      <td>
+                        <table  width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                          <tr>
+                            <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                            <td>
+                              Travellers should report to the airport at least 2 hours prior to the departure time.
+                            </td>
+                                      </tr>
+                        </table>
+                      </td>
+                    </tr>
+
+                          <tr>
+                                <td>
+                                  <table  width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                                    <tr>
+                                      <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                                      <td>
+                                        Only passengers who have flights departing in the next 4 hours will be allowed to enter the terminal building.
+                                      </td>
+                                                </tr>
+                                  </table>
+                                </td>
+                              </tr>
+
+                                    <tr>
+                                          <td>
+                                            <table  width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                                              <tr>
+                                                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                                                <td>
+                                                  Passengers are required to wear face masks at the airport and in the flight.
+                                                </td>
+                                                          </tr>
+                                            </table>
+                                          </td>
+                                        </tr>
+
+                                              <tr>
+                                                    <td>
+                                                      <table  width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                                                        <tr>
+                                                          <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                                                          <td>
+                                                            Only 1 check-in baggage and 1 cabin baggage will be allowed per passenger.
+                                                          </td>
+                                                                    </tr>
+                                                      </table>
+                                                    </td>
+                                                  </tr>
+
+
+                                                        <tr>
+                                                              <td>
+                                                                <table  width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                                                                  <tr>
+                                                                    <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                                                                    <td>
+                                                                      Travellers will be required to print and paste a pre-filled baggage tag and affix it on the bags. Alternatively, they should mention the PNR number and name on paper and affix it on the bags.
+                                                                    </td>
+                                                                              </tr>
+                                                                </table>
+                                                              </td>
+                                                            </tr>
+
+                                                                  <tr>
+                                                                        <td>
+                                                                          <table  width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                                                                            <tr>
+                                                                              <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                                                                              <td>
+                                                                                Elderly, pregnant and ailing individuals are advised to avoid air travel. Additionally, individuals who have been tested COVID-19 positive or are staying in a containment zone should not travel.
+                                                                              </td>
+                                                                                        </tr>
+                                                                          </table>
+                                                                        </td>
+                                                                      </tr>
+
+                                                                            <tr>
+                                                                                  <td>
+                                                                                    <table  width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                                                                                      <tr>
+                                                                                        <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                                                                                        <td>
+                                                                                          No meal service, newspapers or magazines will be available on-board.
+                                                                                        </td>
+                                                                                                  </tr>
+                                                                                    </table>
+                                                                                  </td>
+                                                                                </tr>
+
+                                                                                               <tr>
+                                                                                                   <td>
+                                                                                                        <table  width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                                                                                                         <tr>
+                                                                                                           <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                                                                                                             <td>
+                                                                                                              Travellers will be required to sign self-declaration forms. In case of a PNR having more than one passenger, the declaration would be deemed to be covering all the passengers mentioned in the PNR.
+                                                                                                              </td>
+                                                                                                                </tr>
+                                                                                                             </table>
+                                                                                                              </td>
+                                                                                                          </tr>
+
+
+                                                                                                  <tr>
+                                                                                                        <td>
+                                                                                                      <table  width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                                                                                                        <tr>
+                                                                                                          <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                                                                                                            <td>
+                                                                                                            View all mandatory travel guidelines issued by Govt. of India here<a href="https://www.yatra.com/online/government-guidelines" style="margin-left:5px;text-decoration: none;font-weight:bold;color:#0095b9">https://bit.ly/3gjVF7o</a>.
+                                                                                                             </td>
+                                                                                                               </tr>
+                                                                                                       </table>
+                                                                                                        </td>
+                                                                                                   </tr>
+                                                                                         </table>                  </td>
+                                                                                           </tr>
+                                                                                 <!-- End Compulsory Guidelines for Domestic Travel Section -->
+
+
+
+                         <!-- Useful Information starts here -->
+                                    <tr>
+                    <td>
+                      <table width="100%" border="0" cellspacing="0" cellpadding="6" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+          <tr>
+          <td bgcolor="#f1f1f1" style="border:1px solid #e9e9e9"><strong> Useful Information</strong></td>
+                    </tr>
+                     #if($tenant == 'dom' || $tenant == 'dom2' || $tenant == 'mdomwap' || $tenant == 'mdomios' || $tenant == 'mdomandroid')
+                    <tr>
+            <td>
+              <table width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>Now you can reschedule your domestic bookings online. <a href="www.yatra.com/fresco/content/reschedule-flights-online" target="_blank" style="margin-left:5px;text-decoration: none;font-weight:bold;color:#0095b9">Know More</a>
+
+                  </td>
+                </tr>
+              </table>
+            </td>
+                    </tr>
+                    #end
+
+                    <tr>
+            <td>
+              <table width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>To know cancellation charges for this itinerary, please<a href="www.yatra.com/online/flights-cancellation-charges" style="margin-left:5px;text-decoration: none;font-weight:bold;color:#0095b9">Click here</a>. You can alternatively go to <a href="www.yatra.com">Yatra.com</a> and under Customer Support, select Flights Cancellation Charges.
+
+                  </td>
+                </tr>
+              </table>
+            </td>
+                    </tr>
+
+            <tr>
+              <td>
+                <table width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                            <tr>
+                              <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                              <td>You can go to <a href="https://secure.yatra.com/manage-bookings/allbookings#/list" style="margin-left:5px;text-decoration: none;font-weight:bold;color:#0095b9">Yatra Mybookings</a>. to check your refund status, if in future your flight is cancelled by the airline or you have cancelled the flight directly with the airline. Please bookmark <a href="www.yatra.com/online/claim-your-refund" style="margin-left:5px;text-decoration: none;font-weight:bold;color:#0095b9">this link</a> for more details.
+
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                     </tr>
+
+
+                    <tr>
+            <td>
+              <table  width="100%" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>
+                    To know rescheduling charges for this itinerary, please<a href="www.yatra.com/online/flights-rescheduling-charges" style="margin-left:5px;text-decoration: none;font-weight:bold;color:#0095b9">Click here</a>. You can alternatively go to  <a href="www.yatra.com">Yatra.com</a> and under Customer Support, select Flights Rescheduling Charges
+                  </td>
+                            </tr>
+              </table>
+            </td>
+          </tr>
+
+                    </table>                  </td>
+                  </tr>
+
+                  #end
+                  <!-- Useful Information end here -->
+          <!-- Important Notes starts here changes -->
+                  <tr>
+                    <td height="18"></td>
+                  </tr>
+                    <tr>
+                      <td>
+                        <table width="100%" border="0" cellspacing="0" cellpadding="6" style="font-family:arial; font-size:14px; color:#666666; text-align:left; ">
+                        <tr>
+              <td bgcolor="#f1f1f1" style="border:1px solid #e9e9e9" colspan="2"><strong>Important Notes</strong>         </td>
+              </tr>
+
+                          #if($isOtherWheelOpt == 'true')
+                  <tr>
+                              <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td width="580">
+                    As per airline guidelines supporting document might be required to avail wheel chair service.
+                  </td>
+                  </tr>
+                #end
+                #if($isMealOpt == 'true')
+                <tr>
+                              <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>
+                    Please verify the addition of your flight service requests at the airport checkin counter.
+                  </td>
+                  </tr>
+              #end
+
+            #if(($tenant == 'dom' || $tenant == 'dom2' || $tenant == 'mdomwap' || $tenant == 'mdomios' || $tenant == 'mdomandroid'))
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  Please connect with the airline for refund or alternative to avoid no show before revised scheduled departure, in case you receive any email and SMS from airline about flight timings change.
+                </td>
+              </tr>
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  Please carry a printout of your e-ticket along with a photo identity proof such as driving license, voter ID or passport etc issued by the Government of India. For infant passengers, it is mandatory to carry the Date of Birth certificate.<br/>
+                  <b><i>Note:</i></b> Passengers who are not Indian nationals need to carry their passport along with the e-ticket.
+                </td>
+              </tr>
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  Use your Airline PNR for all your communication for this booking with the Airline.
+                </td>
+              </tr>
+              #if($tenant.contains("dom2") or $isTenantDom and $tenant ne "")
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  For any Support, write to us at support@yatra.com or call us at 0120-484-5562 between 9 am to 6 pm.
+                </td>
+              </tr>
+              #end
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  All times indicated are in 24 hours format and we recommend that you check-in 2 hours prior to departure.
+                </td>
+              </tr>
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  In the event of any cancellation/rescheduling, the respective airline charges will be applicable which may vary by the airline.
+                  #if($isTenantSme == 'false')
+                  For all cancellations done online, Yatra will levy a charge of Rs $onlineCancellationFeeDom per passenger per segment and Rs. $offlineCancellationFeeDom per passenger per segment for cancellations done through our call center.
+                  #end
+                </td>
+              </tr>
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  Any change to a confirmed ticket - including cancellation or rescheduling- must be done at least 24 hours prior to flight departure.
+                </td>
+              </tr>
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  If a ticket is canceled directly from the airlines website, office or call center, the customer needs to <a href="https://secure.yatra.com/manage-bookings/allbookings#/list" style="margin-left:5px;text-decoration: none;font-weight:bold;color:#0095b9">Check Refund Status</a> from MyBookings portal at Yatra.
+                  #if($isTenantSme == 'false')
+                  Yatra will levy Rs. $onlineCancellationFeeDom per passenger per segment.
+                  #end
+                </td>
+              </tr>
+              #if($isTenantInt == 'false')
+              <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>
+                      Hand Baggage(Also applicable for cabin baggage) of maximum 7 kg (which would include Laptop and duty free shopping bags) having maximum overall dimensions of: 115 cms (L+W+H) on Boeing flights and 108 cms (L+W+H) on Bombardier flights, is allowed to be carried per passenger, free of cost. Due to airport security regulations, no cabin baggage is allowed on flights originating from Jammu or Srinagar airports.
+                  </td>
+               </tr>
+               #end
+              #if($isDestAgatti=='true')
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  All passengers travelling to Agatti need to take permit from Lakshaweep administrator without which they will not be accepted for travel. Administrator contact details can be accessed at http://www.lakshadweep.nic.in
+                </td>
+              </tr>
+              #end
+              #if($isOrgJammuSrinagarLeh=='true')
+                <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>
+                    Passengers traveling on flights originating from Jammu, Srinagar and Leh will not be allowed to carry any cabin baggage due to security restrictions.
+                  </td>
+                </tr>
+              #end
+            #end
+
+            #if(!($tenant == 'dom' || $tenant == 'dom2' || $tenant == 'mdomwap' || $tenant == 'mdomios' || $tenant == 'mdomandroid'))
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  Please connect with the airline for refund or alternative to avoid no show before revised scheduled departure, in case you receive any email and SMS from airline about flight timings change.
+                </td>
+              </tr>
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  Please carry a printout of your e-ticket along with a valid visa and passport with a minimum validity of 6 months from the date of travel.
+                </td>
+              </tr>
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  Use your Airline PNR for all your communication for this booking with the Airline.
+                </td>
+              </tr>
+              #if($tenant.contains("int2") or $isTenantInt and $tenant ne "")
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  For any Support, write to us at intobservice@yatra.com or call us at 0120-484-5562 between 9 am to 6 pm.
+                </td>
+              </tr>
+              #end
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  All times indicated are local times (in 24 hours format) at the relevant airport and we recommend that you check-in 3 hours prior to departure.
+                </td>
+              </tr>
+              #if($confirmationJson.uiUtils.impNotes)
+                  #foreach($impNote in  $confirmationJson.uiUtils.impNotes)
+                  <tr>
+                      <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                      <td>
+                        $impNote
+                      </td>
+                    </tr>
+                    #end
+              #end
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  In the event of any cancellation/rescheduling, the respective airline charges will be applicable which may vary by the airline.
+                   #if($isTenantSme == 'false')
+                   For all cancellations done online, Yatra will levy a charge of Rs $onlineCancellationFeeInt per passenger and Rs. $offlineCancellationFeeInt per passenger per segment for cancellations done through our call center.
+                   #end
+                </td>
+              </tr>
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  Any cancellation must be done at least 48 hours prior to flight departure. Cancellation charges may vary if canceled within 48 hours of departure.
+                </td>
+              </tr>
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  If a ticket is canceled directly from the airlines website, office or call center, the customer needs to <a href="https://secure.yatra.com/manage-bookings/allbookings#/list?action=refundClaim_fileTdr&product=flight&companyId=YT" style="margin-left:5px;text-decoration: none;font-weight:bold;color:#0095b9">Claim Refund </a> from MyBookings portal at Yatra.
+                  #if($isTenantSme == 'false')
+                  Yatra will levy Rs. $onlineCancellationFeeInt per passenger per segment.
+                  #end
+                </td>
+              </tr>
+                <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>
+                    In case your flight is transiting through a country apart from your destination, please ensure to carry a valid transit visa (if applicable) to avoid boarding denial. In case of any additional information about transit visa please contact a Yatra travel consultant. For eg: some countries where transit visa is required are United Kingdom, USA, Australia, Canada.
+                  </td>
+                </tr>
+            #end
+            #if($isSTU)
+              <tr>
+                <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                <td>
+                  The special discounted fares are applicable only to the students pursuing studies in a bonafide school/university. A valid identity card issued by the respective University/ form signed by the head of the Institution/Student visa copy (I 20 form) is a necessary condition for travel under this offer and passengers will be required to produce the documents at the Airline check in counter at the airport.
+                </td>
+              </tr>
+              #end
+
+              #if($tenant.contains('dom'))
+                <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>
+                    For domestic airlines, baggage allowance of 1 piece is equivalent to one bag of 15 Kgs (max). However, this baggage information is just for reference. Please check with the airline before check-in.
+                  </td>
+                </tr>
+                <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>
+                    Please refer to the <a href="https://ns.yatracdn.com/common/docs/passenger-charter-moca-india.pdf" style="margin-left:5px;text-decoration: none;font-weight:bold;color:#0095b9">Passenger charter </a>for any additional information.
+                  </td>
+                </tr>
+              #elseif($tenant.contains('int'))
+                 <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>
+                    For international airlines, baggage allowance of 1 piece is equivalent to one bag of 23 Kgs (max). However, this baggage information is just for reference. Please check with the airline before check-in.
+                  </td>
+                </tr>
+                <tr>
+                  <td width="15" valign="top"><font color="#999999" style="font-size:16px;">&bull;</font></td>
+                  <td>
+                    Please refer to the Passenger charter <a href="https://ns.yatracdn.com/common/docs/passenger-charter-moca-india.pdf" style="margin-left:5px;text-decoration: none;font-weight:bold;color:#0095b9">Passenger charter </a>for any additional information.
+                  </td>
+                </tr>
+              #end
+
+            </table>
+          </td>
+          </tr>
+
+          <tr>
+                    <td height="12"></td>
+                  </tr>
+
+          <tr>
+                    <td height="18"></td>
+                  </tr>
+          #if($confirmationJson.ewalletinfo.ewalletOff == 'false' && $isHff != 'true')
+                  <tr>
+                    <td>
+                      <!--Start_eCash_Account-->
+                        <table width="100%" border="0" cellspacing="0" cellpadding="9" style="font-family:arial; font-size:14px; color:#666666; text-align:left;">
+                                  <tr>
+                                    <td bgcolor="#f1f1f1" style="border:1px solid #e9e9e9"><strong>Your eCash Account</strong></td>
+                                  </tr>
+                                  <tr>
+                                    <td valign="top"  style="border-bottom:1px solid #e9e9e9;">
+                                      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:13px; color:#333333; line-height:25px;">
+                                          <tr>
+                                            <td width="140"><font color="#888888" style="font-size:12px;">(-)</font> eCash Redeemed</td>
+                                            <td align="right"><font color="#888888" style="font-size:12px;">(-)</font> <span class="RupeeSign">Rs.</span> $ecashAmount</td>
+                                          </tr>
+                                          <tr>
+                                            <td><font color="#888888" style="font-size:12px;">(+)</font> eCash Earned</td>
+                                            <td align="right"><font color="#888888" style="font-size:12px;">(+)</font> <span class="RupeeSign">Rs.</span> $ylp</td>
+                                          </tr>
+                                        </table>                  </td>
+                                  </tr>
+                                  <tr>
+                                    <td valign="top">
+                                      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:13px; color:#333333;">
+                                          <tr>
+                                            <td width="165"><a href="#" target="_blank" style="text-decoration:none;"><font color="#276ecf"><strong>Available Balance</strong></font></a></td>
+                                            <td align="right"><font style="font-size:16px;" color="#333333"><strong><span class="RupeeSign">Rs.</span> $walletBal</strong></font></td>
+                                          </tr>
+                                        </table>                  </td>
+                                  </tr>
+                                </table>
+                        <!--End_eCash_Account-->                    </td>
+                  </tr>
+          #end
+                  <tr>
+                    <td height="50"></td>
+                  </tr>
+                  <tr>
+                    <td><font style="font-size:14px;" color="#333333">Confirmation details have also been sent to:</font> <span style="display:inline-block; font-size:12px; color:#666766">SMS: +$user.isd $user.mobile</span></td>
+                  </tr>
+                  <tr>
+                    <td height="30"></td>
+                  </tr>
+          #if($showBuzzInTown == 'true' && $delhiBanner == 1 && ($tenant == 'dom' || $tenant == 'dom2'))
+          <tr id="delhi_er">
+          <td>
+          $!bitDEL         </td>
+          </tr>
+          #end
+          #if($showBuzzInTown == 'true' && $bombayBanner == 1 && ($tenant == 'dom' || $tenant == 'dom2'))
+          <tr id="delhi_banner">
+          <td>
+          $!bitBOM         </td>
+          </tr>
+          #end
+          #if($showBuzzInTown == 'true' && $bangloreBanner == 1 && ($tenant == 'dom' || $tenant == 'dom2'))
+          <tr id="delhi_banner">
+          <td>
+          $!bitBLR         </td>
+          </tr>
+          #end
+         #if($tenant == 'dom' || $tenant == 'dom2' || $tenant == 'mdomwap' || $tenant == 'mdomios' || $tenant == 'mdomandroid')
+                 <tr>
+                    <td height="25" valign="top" style="border-bottom:1px solid #e2e2e2;padding-top:10px;"><font style="font-size:14px;" color="#333333">Do more with Yatra</font> </td>
+                  </tr>
+                 <tr>
+                    <td>
+                        <table width="173" align="left" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:14px;">
+                        <tr>
+                        <td colspan="2" height="15"></td>
+                        </tr>
+                        <tr>
+                        <td width="20" valign="top"><img src="$imagePath/bull.gif" width="14" height="13" vspace="3" hspace="0" align="absmiddle" border="0" /></td>
+                        <td width="153"><a href="yatra.com" target="_blank" style="color:#0094b5; text-decoration:none;">Book another flight</a></td>
+                        </tr>
+                        </table>          </td>
+                  </tr>
+                  #end
+                  <!--<tr>
+                    <td height="15" valign="top" style="border-bottom:1px solid #e2e2e2;"></td>
+                  </tr>-->
+          <tr>
+                    <td height="30"></td>
+                  </tr>
+          <tr>
+          <td>
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8f8f8" style="font-family:arial; font-size:14px; color:#333333; text-align:center">
+                          <tr>
+                            <td colspan="3" height="11"></td>
+                          </tr>
+                          <tr>
+                            <td></td>
+                            <td><strong>Manage bookings on the Go! Download Yatra App </strong></td>
+                             <td></td>
+                          </tr>
+                          <tr>
+                            <td colspan="3" height="10"></td>
+                          </tr>
+                          <tr>
+                            <td></td>
+                            <td>
+
+                                <table align="center" border="0" cellspacing="5" cellpadding="0">
+                                  <tbody>
+                                  <tr>
+                                    <td bgcolor="#221b23" width="177">
+                                                <a href="https://95026.api-01.com/serve?action=click&amp;publisher_id=95026&amp;site_id=45944&amp;destination_id=106076" target="_blank" title="Download Android App"><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/playstore-btn.gif" alt="Download Android App" style="font-family:arial; font-size:16px; color:#ffffff; line-height:40px;" width="177" height="43" vspace="0" hspace="0" align="left" border="0"></a>                                    </td>
+
+                                    <td bgcolor="#221b23" width="177">
+                                                <a href="https://95662.api-01.com/serve?action=click&amp;publisher_id=95662&amp;site_id=45942" target="_blank" title="Download iOS App"><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/appstore-btn.gif" alt="Download iOS App" style="font-family:arial; font-size:16px; color:#ffffff; line-height:40px;" width="177" height="43" vspace="0" hspace="0" align="left" border="0"></a>                                    </td>
+
+                                  </tr>
+                                </tbody></table>
+
+                            </td>
+                             <td></td>
+                          </tr>
+                          <tr>
+                            <td colspan="3" height="11"></td>
+                          </tr>
+                        </table>          </td>
+          </tr>
+                  <tr>
+                    <td height="30"></td>
+                  </tr>
+                  <tr>
+                    <td style="font-size:18px; color:#666766; line-height:26px;" align="center">
+                        Wishing You a Happy Journey!<br>
+                        <a href="https://www.yatra.com" target="_blank" style="text-decoration:none;"><font color="#0595b6">Yatra</font><span style="font-size:1px;"> </span><font color="#f5863a">.com</font></a> Team
+                    </td>
+                  </tr>
+                  <tr>
+                    <td height="20" style="border-bottom:1px solid #ebebeb;">&nbsp;</td>
+                  </tr>
+                </table>
+        <!--End_Content_area-->
+            </td>
+            <td width="10"><img src="$imagePath/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+          </tr>
+          <tr>
+            <td colspan="3" height="15"></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>
+               <!--Start_SocialFooter-->
+                              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                  <td><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/604_zero.gif" width="1px" style="width:1px;" vspace="0" hspace="0" align="left" /></td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <table border="0" align="center" cellspacing="0" cellpadding="0" style="max-width:390px;">
+                                        <tr>
+                                          <td colspan="4" height="10"></td>
+                                        </tr>
+                                        <tr>
+                                          <td width="130">
+                                            <table width="130" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:12px; color:#666666; text-align:center;">
+                                                <tr>
+                                                  <td colspan="3" height="20" valign="top">Save big with</td>
+                                                </tr>
+                                                <tr>
+                                                  <td width="60"><a href="www.yatra.com/offer/detail/yatra-sbi-credit-card" target="_blank" style="text-decoration:none;  color:#666666;"><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/sbiCard_IC.gif" width="36" height="37" vspace="0" hspace="0" align="absmiddle" border="0" /><br>
+                                                  SBI Card</a></td>
+                                                  <td width="10"></td>
+                                                  <td width="60"><a href="www.yatra.com/offer/detail/scb-yatra-platinum-credit-card" target="_blank" style="text-decoration:none;  color:#666666;"><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/scbCard_IC.gif" width="36" height="37" vspace="0" hspace="0" align="absmiddle" border="0" /><br>
+                                                  SCB Card</a></td>
+                                                </tr>
+                                              </table>
+                            </td>
+                                          <td width="38"><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+                                          <td width="185">
+                                            <table width="185" align="left" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:12px; color:#666666; text-align:center;">
+                            <tr>
+                              <td colspan="3" height="20" valign="top">Yatra on Mobile</td>
+                            </tr>
+                                          <tr>
+                              <td width="60"><a href="https://95026.api-01.com/serve?action=click&publisher_id=95026&site_id=45944&destination_id=106076" target="_blank" style="text-decoration:none; color:#666666;"><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/playstoreSmall_IC.gif" width="36" height="37" vspace="0" hspace="4" align="absmiddle" border="0" /><br>
+                                Android</a></td>
+                              <td width="60"><a href="https://95662.api-01.com/serve?action=click&publisher_id=95662&site_id=45942" target="_blank" style="text-decoration:none; color:#666666;"><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/iosSmall_IC.gif" width="36" height="37" vspace="0" hspace="4" align="absmiddle" border="0" /><br>
+                                iOS</a></td>
+                            </tr>
+                          </table>
+                                          </td>
+                                          <td width="37"><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/spacer.gif" width="8" height="1" vspace="0" hspace="0" align="left"></td>
+              <td> <table width="190" align="left" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:12px; color:#666666; text-align:center;">
+                                        <tr>
+                                          <td colspan="3" height="20" valign="top">Follow us on</td>
+                                        </tr>
+                                        <tr>
+                                          <td width="72">
+                                            <a href="https://www.facebook.com/Yatra" target="_blank" style="text-decoration:none; color:#666666;"><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/fb_IC.gif" width="36" height="37" vspace="0" hspace="0" align="absmiddle" border="0" /><br>
+                                            Facebook</a>
+                                          </td>
+                                          <td width="48"><a href="https://twitter.com/intent/follow?original_referer=&amp;screen_name=YatraOfficial&amp;source=followbutton&amp;variant=1.1" target="_blank" style="text-decoration:none; color:#666666;"><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/twt_IC.gif" width="36" height="37" vspace="0" hspace="0" align="absmiddle" border="0" /><br>
+                                            Twitter</a></td>
+                                          <td width="70"><a href="https://plus.google.com/u/0/+yatracom/posts" target="_blank" style="text-decoration:none; color:#666666;"><img src="https://www.yatra.com/air-pay-book-service/resources/css/images/gplus_IC.gif" width="36" height="37" vspace="0" hspace="0" align="absmiddle" border="0" /><br>
+                                            Google+</a></td>
+                                        </tr>
+                                      </table></td>
+                                        </tr>
+                                      </table>
+
+                        </td>
+                                </tr>
+                                <tr>
+                                  <td height="20"></td>
+                                </tr>
+                              </table>
+                      <!--End_SocialFooter-->
+            </td>
+            <td></td>
+          </tr>
+        </table>
+  </td>
+  </tr>
+
+  <tr>
+    <td style="padding:0 10px 10px 10px;">
+      <!--Start_UnsubscribeBar-->
+        <table width="98%" border="0" cellspacing="0" cellpadding="0" style="font-family:arial; font-size:12px;  color:#999999;-webkit-text-size-adjust: none; text-align:left;">
+              <tr>
+                <td height="14"></td>
+              </tr>
+              <tr>
+                <td width="600">Important: Please do not reply to this email. It has been sent to an email account that is unattended.
+Please add <a href="mailto:donotreply@yatra.com" target="_blank" style="text-decoration:none; color:#0996b7">donotreply@yatra.com</a> to your contact list and address book to ensure that you recieve
+communication related to your booking from <a href="www.yatra.com/" target="_blank" style="text-decoration:none; color:#0996b7">yatra.com</a></td>
+              </tr>
+            </table>
+        <!--End_UnsubscribeBar-->
+    </td>
+  </tr>
+</table></td>
+  </tr>
+</table>
+
+</body>
+</html>
