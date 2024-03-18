@@ -1,0 +1,19 @@
+# MySQL Database Configuration
+spring:
+  datasource:
+    url: jdbc:mysql://flightsqadb:3306/yatra?autoReconnect=true&zeroDateTimeBehavior=convertToNull
+    username: yatraair 
+    password: yatraair
+
+# Email Configuration
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: shivajisangati@gmail.com
+    password: ehor nhmp othg rynd
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
